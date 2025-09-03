@@ -15,26 +15,19 @@ type MadridNow = {
  * 🔓 Desbloqueos absolutos por día (clave = día del calendario)
  * Formato: ISO con offset de zona. Para Europe/Madrid en septiembre 2025 es +02:00 (CEST).
  *
- * Ejemplo solicitado:
- *  - Día 1 => 2025-09-04 01:15:00 Europe/Madrid
+ * Día 1 => 2025-09-04 01:15:00 Europe/Madrid (pedido por ti)
  */
 const CUSTOM_UNLOCKS: Record<number, string> = {
   1: "2025-09-04T01:15:00+02:00"
-  // Puedes añadir más, p.ej.:
+  // Añade más si quieres, p.ej.:
   // 2: "2025-10-02T00:00:00+02:00",
   // 3: "2025-10-03T00:00:00+02:00",
 };
 
-/**
- * Overrides remotos: si un día está en true aquí, se considera desbloqueado.
- * Se establece desde el frontend con setRemoteOverrides(fetchOverrides()).
- */
+/** ===== Overrides remotos y de desarrollo ===== **/
+
 let remoteOverrides: Record<number, boolean> = {};
 
-/**
- * Overrides locales de desarrollo (almacenados en localStorage).
- * Si un día está a true aquí, se considera desbloqueado en ese navegador.
- */
 const LS_KEY = "oct-dev-overrides";
 function readDevOverrides(): Record<number, boolean> {
   if (typeof window === "undefined") return {};
@@ -104,15 +97,62 @@ export function nowMadrid(): MadridNow {
 
 /**
  * Milisegundos hasta la próxima medianoche en Europe/Madrid.
- * (Aproximación robusta: se basa en reloj de Madrid actual)
+ * (Aproximación robusta basada en reloj local de Madrid)
  */
 export function msUntilNextMadridMidnight(): number {
   const cur = nowMadrid();
-  // Segundos transcurridos en el día de Madrid
   const elapsedSec = cur.hh * 3600 + cur.mm * 60 + cur.ss;
   const remainingSec = 24 * 3600 - elapsedSec;
   const remainingMs = remainingSec * 1000 - cur.ms;
   return Math.max(0, remainingMs);
+}
+
+/** ===================== Conversión de "hora Madrid" -> epoch ===================== **/
+
+const TZ = "Europe/Madrid";
+
+/**
+ * Offset (ms) de la zona horaria target en un instante dado.
+ * Técnica estándar usando Intl para evitar errores por DST.
+ */
+function tzOffsetMsAt(dateUtc: Date, timeZone: string): number {
+  const dtf = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+  const parts = dtf.formatToParts(dateUtc);
+  const map: Record<string, string> = {};
+  for (const { type, value } of parts) {
+    if (type !== "literal") map[type] = value;
+  }
+  const asUTC = Date.UTC(
+    Number(map.year),
+    Number(map.month) - 1,
+    Number(map.day),
+    Number(map.hour),
+    Number(map.minute),
+    Number(map.second)
+  );
+  return asUTC - dateUtc.getTime();
+}
+
+/**
+ * Devuelve el epoch UTC (ms) correspondiente a la hora "wall-clock" de Madrid.
+ * Hace un ajuste iterativo para transiciones DST.
+ */
+function madridWallTimeToEpoch(year: number, monthIndex0: number, day: number, hh = 0, mm = 0, ss = 0): number {
+  // Primer intento: suposición UTC del mismo valor numérico
+  const guess = Date.UTC(year, monthIndex0, day, hh, mm, ss);
+  const off1 = tzOffsetMsAt(new Date(guess), TZ);
+  const t1 = guess - off1;
+  const off2 = tzOffsetMsAt(new Date(t1), TZ);
+  return off2 === off1 ? t1 : guess - off2;
 }
 
 /** ===================== Overrides (remoto / dev) ===================== **/
@@ -135,45 +175,56 @@ export function setDevOverride(day: number, on: boolean) {
 /** ===================== Lógica de desbloqueo ===================== **/
 
 /**
- * ¿Está desbloqueado el día N, teniendo en cuenta:
- *  1) Overrides de desarrollo (localStorage)
+ * ¿Epoch de desbloqueo del día N?
+ * - Si hay CUSTOM_UNLOCKS: usa esa fecha/hora exacta.
+ * - Si no: 00:00 del día N del mes objetivo en Madrid.
+ */
+export function getUnlockEpoch(day: number, year: number, monthIndex0: number): number {
+  const iso = CUSTOM_UNLOCKS[day];
+  if (iso) {
+    const t = Date.parse(iso);
+    if (!Number.isNaN(t)) return t;
+  }
+  return madridWallTimeToEpoch(year, monthIndex0, day, 0, 0, 0);
+}
+
+/**
+ * ¿Está desbloqueado el día N a "ahora"?
+ * Considera:
+ *  1) Overrides dev (localStorage)
  *  2) Overrides remotos (backend)
- *  3) Desbloqueos absolutos por fecha/hora (CUSTOM_UNLOCKS)
- *  4) Regla estándar: en el mes objetivo, cada día se abre en su fecha (Europe/Madrid)
- *
- * @param day Día 1..31
- * @param year Año del calendario (p.ej., 2025)
- * @param monthIndex0 Mes 0..11 (p.ej., 9 para octubre)
+ *  3) Desbloqueos absolutos (CUSTOM_UNLOCKS)
+ *  4) Regla estándar: en el mes objetivo, cada día se abre a su 00:00 (Madrid)
  */
 export function isUnlockedDevAware(day: number, year: number, monthIndex0: number): boolean {
-  // 1) Forzado dev (local)
   const dev = readDevOverrides();
   if (dev[day]) return true;
 
-  // 2) Remoto
   if (remoteOverrides && remoteOverrides[day]) return true;
 
-  // 3) Desbloqueo absoluto si existe
-  const iso = CUSTOM_UNLOCKS[day];
-  if (iso) {
-    const unlockAtUtc = Date.parse(iso); // ISO con offset -> UTC epoch
-    if (!Number.isNaN(unlockAtUtc)) {
-      if (Date.now() >= unlockAtUtc) return true;
-      // Si aún no ha llegado la hora absoluta, continúa y podría seguir bloqueado
+  const unlockAt = getUnlockEpoch(day, year, monthIndex0);
+  return Date.now() >= unlockAt;
+}
+
+/**
+ * Próximo desbloqueo pendiente:
+ * Devuelve el próximo día aún bloqueado y cuántos ms faltan. Si no hay pendientes, devuelve null.
+ */
+export function getNextUnlockInfo(year: number, monthIndex0: number, daysCount = 31): { day: number; msRemaining: number } | null {
+  const now = Date.now();
+  let best: { day: number; msRemaining: number } | null = null;
+
+  for (let day = 1; day <= daysCount; day++) {
+    // Si ya está desbloqueado, saltamos
+    if (isUnlockedDevAware(day, year, monthIndex0)) continue;
+
+    const unlockAt = getUnlockEpoch(day, year, monthIndex0);
+    const msRemaining = unlockAt - now;
+    if (msRemaining > 0) {
+      if (!best || msRemaining < best.msRemaining) {
+        best = { day, msRemaining };
+      }
     }
   }
-
-  // 4) Regla estándar por fecha (Europe/Madrid):
-  //    - Antes del mes objetivo: todo bloqueado
-  //    - En el mes objetivo: desbloqueado si hoy.d >= day
-  //    - Después del mes objetivo: todo desbloqueado
-  const tm = nowMadrid(); // fecha actual en Madrid
-  if (tm.y < year || (tm.y === year && tm.m < monthIndex0 + 1)) {
-    return false; // todavía no hemos llegado al mes objetivo
-  }
-  if (tm.y > year || (tm.y === year && tm.m > monthIndex0 + 1)) {
-    return true; // ya pasó el mes objetivo: todo abierto
-  }
-  // estamos dentro del mes objetivo
-  return tm.d >= day;
+  return best;
 }

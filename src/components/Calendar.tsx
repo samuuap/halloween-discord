@@ -3,12 +3,13 @@ import { daysInMonth, firstDowOffsetMondayFirst, setRemoteOverrides } from "@/li
 import DayCell from "./DayCell";
 import { useMemo, useState, useEffect } from "react";
 import { fetchOverrides } from "@/lib/remote";
+import Countdown from "./Countdown";
 
 export default function Calendar() {
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    // ÚNICAMENTE: descargar y aplicar estado global (sin admin ni overrides por URL)
+    // Únicamente descargar y aplicar estado global (sin admin ni overrides por URL)
     fetchOverrides().then((map) => {
       setRemoteOverrides(map);
       setVersion((v) => v + 1);
@@ -40,8 +41,10 @@ export default function Calendar() {
             <div className="text-muted text-sm">Desbloqueo diario con pistas para adivinar la peli en Discord</div>
           </div>
         </div>
-        {CONFIG.discordUrl && (
-          <div className="flex gap-2 flex-wrap justify-end">
+
+        <div className="flex items-center gap-3 flex-wrap justify-end">
+          <Countdown year={CONFIG.year} monthIndex0={CONFIG.month} />
+          {CONFIG.discordUrl && (
             <a
               href={CONFIG.discordUrl}
               target="_blank"
@@ -50,8 +53,8 @@ export default function Calendar() {
             >
               🕸️ Abrir Discord
             </a>
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
       <div className="grid grid-cols-7 gap-3 mb-1">
