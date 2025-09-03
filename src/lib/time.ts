@@ -1,5 +1,6 @@
 // src/lib/time.ts
 // Utilidades de tiempo con soporte de desbloqueos absolutos (Europe/Madrid)
+// + Desbloqueos dinámicos (p.ej., "en 5 minutos") con persistencia en localStorage.
 
 type MadridNow = {
   y: number; // año
@@ -15,13 +16,21 @@ type MadridNow = {
  * 🔓 Desbloqueos absolutos por día (clave = día del calendario)
  * Formato: ISO con offset de zona. Para Europe/Madrid en septiembre 2025 es +02:00 (CEST).
  *
- * Día 1 => 2025-09-04 01:15:00 Europe/Madrid (pedido por ti)
+ * Día 1 => 2025-09-04 01:15:00 Europe/Madrid (pedido)
  */
 const CUSTOM_UNLOCKS: Record<number, string> = {
   1: "2025-09-04T01:15:00+02:00"
-  // Añade más si quieres, p.ej.:
-  // 2: "2025-10-02T00:00:00+02:00",
-  // 3: "2025-10-03T00:00:00+02:00",
+  // Puedes añadir más absolutos aquí si lo necesitas.
+};
+
+/**
+ * 🔓 Desbloqueos dinámicos relativos “desde ahora” (se fijan en la PRIMERA carga y se guardan en localStorage)
+ * Ej.: Día 2 => en 5 minutos desde la primera carga.
+ */
+const DYNAMIC_UNLOCKS: Record<number, { minutesFromNow: number; storageKey: string }> = {
+  2: { minutesFromNow: 5, storageKey: "oct-unlock-d2-epoch" }
+  // Ejemplo para más días:
+  // 5: { minutesFromNow: 60, storageKey: "oct-unlock-d5-epoch" }
 };
 
 /** ===== Overrides remotos y de desarrollo ===== **/
@@ -175,16 +184,54 @@ export function setDevOverride(day: number, on: boolean) {
 /** ===================== Lógica de desbloqueo ===================== **/
 
 /**
+ * Calcula (o recupera) el epoch del desbloqueo dinámico de un día (si existe).
+ * Se fija una sola vez (en la primera lectura) y se persiste en localStorage.
+ */
+function getDynamicUnlockEpoch(day: number): number | null {
+  const def = DYNAMIC_UNLOCKS[day];
+  if (!def) return null;
+
+  if (typeof window === "undefined") {
+    // En SSR, simplemente devuelve “ahora + X min” (sin persistencia)
+    return Date.now() + def.minutesFromNow * 60_000;
+  }
+
+  try {
+    const stored = localStorage.getItem(def.storageKey);
+    if (stored) {
+      const t = Number(stored);
+      if (Number.isFinite(t)) return t;
+    }
+    // No existe: lo fijamos ahora y persistimos
+    const tNew = Date.now() + def.minutesFromNow * 60_000;
+    localStorage.setItem(def.storageKey, String(tNew));
+    return tNew;
+  } catch {
+    // Si falla localStorage, devolvemos cálculo en caliente
+    return Date.now() + def.minutesFromNow * 60_000;
+  }
+}
+
+/**
  * ¿Epoch de desbloqueo del día N?
- * - Si hay CUSTOM_UNLOCKS: usa esa fecha/hora exacta.
- * - Si no: 00:00 del día N del mes objetivo en Madrid.
+ * Prioridad:
+ *  1) Dinámico persistente (si definido en DYNAMIC_UNLOCKS)
+ *  2) Absoluto por ISO (CUSTOM_UNLOCKS)
+ *  3) 00:00 del día N del mes objetivo (hora de Madrid)
  */
 export function getUnlockEpoch(day: number, year: number, monthIndex0: number): number {
+  // 1) Dinámico relativo
+  const dyn = getDynamicUnlockEpoch(day);
+  if (dyn != null) return dyn;
+
+  // 2) Absoluto por ISO
   const iso = CUSTOM_UNLOCKS[day];
   if (iso) {
     const t = Date.parse(iso);
     if (!Number.isNaN(t)) return t;
   }
+
+  // 3) Estándar: 00:00 Madrid del día N
   return madridWallTimeToEpoch(year, monthIndex0, day, 0, 0, 0);
 }
 
@@ -193,8 +240,7 @@ export function getUnlockEpoch(day: number, year: number, monthIndex0: number): 
  * Considera:
  *  1) Overrides dev (localStorage)
  *  2) Overrides remotos (backend)
- *  3) Desbloqueos absolutos (CUSTOM_UNLOCKS)
- *  4) Regla estándar: en el mes objetivo, cada día se abre a su 00:00 (Madrid)
+ *  3) Hora de desbloqueo calculada (dinámica/absoluta/estándar)
  */
 export function isUnlockedDevAware(day: number, year: number, monthIndex0: number): boolean {
   const dev = readDevOverrides();
