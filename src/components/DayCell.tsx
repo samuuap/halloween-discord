@@ -1,6 +1,5 @@
 import { CONFIG } from "@/data/config";
-import { isUnlockedDevAware, nowMadrid, setDevOverride } from "@/lib/time";
-import { isAdminActive } from "@/lib/admin";
+import { isUnlockedDevAware, nowMadrid } from "@/lib/time";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
 
@@ -15,19 +14,13 @@ type DayDataLocal = {
 export default function DayCell({
   day,
   data,
-  spoilersHidden, // no usado en portada
-  onForceUnlock,   // compat
-  isAdmin          // compat
+  spoilersHidden // no usado en portada, pero mantenemos la prop por compat
 }: {
   day: number;
   data?: DayDataLocal;
   spoilersHidden: boolean;
-  isAdmin: boolean;
-  onForceUnlock(day: number): void;
 }) {
   const unlocked = isUnlockedDevAware(day, CONFIG.year, CONFIG.month);
-  const adminActive = isAdminActive();
-
   const tm = nowMadrid();
   const isToday = tm.y === CONFIG.year && tm.m === CONFIG.month + 1 && tm.d === day;
 
@@ -56,29 +49,6 @@ export default function DayCell({
               ✅ Ver pistas
             </Link>
           ) : null}
-
-          {/* Controles admin opcionales */}
-          {adminActive && (
-            <>
-              {!unlocked ? (
-                <button
-                  onClick={() => { setDevOverride(day, true); location.reload(); }}
-                  className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-md border border-accent2/40 bg-[rgba(124,58,237,.10)] hover:shadow-ring"
-                  title="Forzar desbloqueo (visual)"
-                >
-                  ⚡ Forzar
-                </button>
-              ) : (
-                <button
-                  onClick={() => { setDevOverride(day, false); location.reload(); }}
-                  className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-md border border-white/30 hover:shadow-ring"
-                  title="Quitar desbloqueo forzado"
-                >
-                  🔒 Bloquear
-                </button>
-              )}
-            </>
-          )}
         </div>
       </div>
 

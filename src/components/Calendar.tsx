@@ -2,21 +2,13 @@ import { CONFIG } from "@/data/config";
 import { daysInMonth, firstDowOffsetMondayFirst, setRemoteOverrides } from "@/lib/time";
 import DayCell from "./DayCell";
 import { useMemo, useState, useEffect } from "react";
-import AdminBar from "./AdminBar";
-import { applyQueryOverrides, ensureAdmin, isAdminActive } from "@/lib/admin";
 import { fetchOverrides } from "@/lib/remote";
 
 export default function Calendar() {
   const [version, setVersion] = useState(0);
-  const isAdmin = isAdminActive();
 
   useEffect(() => {
-    // 1) Admin y overrides por URL (locales o remotos según admin.ts)
-    ensureAdmin();
-    const changed = applyQueryOverrides();
-    if (changed) setVersion((v) => v + 1);
-
-    // 2) Descarga estado global
+    // ÚNICAMENTE: descargar y aplicar estado global (sin admin ni overrides por URL)
     fetchOverrides().then((map) => {
       setRemoteOverrides(map);
       setVersion((v) => v + 1);
@@ -38,8 +30,6 @@ export default function Calendar() {
 
   return (
     <div className="max-w-grid mx-auto px-4 pb-10" key={version}>
-      <AdminBar />
-
       <header className="grid grid-cols-[1fr_auto] gap-4 items-center my-6">
         <div className="flex items-center gap-3">
           <div className="w-[42px] h-[42px] rounded-xl grid place-items-center bg-[conic-gradient(from_210deg,rgba(255,107,0,.25),rgba(124,58,237,.25))] shadow-ring">
@@ -83,8 +73,6 @@ export default function Calendar() {
               day={day}
               data={data}
               spoilersHidden={false}
-              onForceUnlock={() => {}}
-              isAdmin={isAdmin}
             />
           );
         })}

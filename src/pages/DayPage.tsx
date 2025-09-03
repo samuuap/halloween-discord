@@ -3,8 +3,6 @@ import { CONFIG } from "@/data/config";
 import { getDevOverrides, isUnlockedDevAware, msUntilNextMadridMidnight, nowMadrid } from "@/lib/time";
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import AdminBar from "@/components/AdminBar";
-import { ensureAdmin, isAdminActive, applyQueryOverrides } from "@/lib/admin";
 
 const SPOILERS_KEY = "oct-spoilers-hidden";
 
@@ -18,12 +16,6 @@ export default function DayPage() {
     catch { return false; }
   });
   const [countdown, setCountdown] = useState<string>("");
-
-  useEffect(() => {
-    ensureAdmin();
-    applyQueryOverrides();
-  }, []);
-  const isAdmin = isAdminActive();
 
   const unlocked = useMemo(
     () => isUnlockedDevAware(day, CONFIG.year, CONFIG.month),
@@ -68,8 +60,6 @@ export default function DayPage() {
 
   return (
     <div className="max-w-grid mx-auto px-4 py-8">
-      <AdminBar />
-
       <header className="flex items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-[42px] h-[42px] rounded-xl grid place-items-center bg-[conic-gradient(from_210deg,rgba(255,107,0,.25),rgba(124,58,237,.25))] shadow-ring">
@@ -138,7 +128,7 @@ export default function DayPage() {
 
             <div className={clsx("flex flex-col gap-2", spoilersHidden && unlocked && "blur-[6px] select-none")}>
               {unlocked ? (
-                pistas.length ? (
+                Array.isArray(pistas) && pistas.length ? (
                   pistas.map((p: string, i: number) => (
                     <div key={i} className="p-2 rounded-lg border border-white/20 border-dashed bg-white/5 text-sm">🕵️ {p}</div>
                   ))
