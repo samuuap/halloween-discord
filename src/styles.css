@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* fondos y pequeños detalles */
+body {
+  background:
+    radial-gradient(1200px 800px at 120% -20%, rgba(124,58,237,.15), transparent 60%),
+    radial-gradient(900px 600px at -10% 10%, rgba(255,107,0,.12), transparent 60%),
+    #0b0b10;
+}

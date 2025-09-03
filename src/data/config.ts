@@ -1,0 +1,40 @@
+export const CONFIG = {
+  year: 2025,
+  month: 9, // octubre (0 = enero, 9 = octubre)
+  adminPass: "trick-or-treat",
+  discordUrl: "https://discord.gg/ejemplo",
+
+  days: {
+    1:  { title: "Noche 1",  poster: "/haunted-house.png", pistas: ["hola"] },
+    2:  { title: "Noche 2",  poster: "/haunted-house.png", pistas: [] },
+    3:  { title: "Noche 3",  poster: "/haunted-house.png", pistas: [] },
+    4:  { title: "Noche 4",  poster: "/haunted-house.png", pistas: [] },
+    5:  { title: "Noche 5",  poster: "/haunted-house.png", pistas: [] },
+    6:  { title: "Noche 6",  poster: "/haunted-house.png", pistas: [] },
+    7:  { title: "Noche 7",  poster: "/haunted-house.png", pistas: [] },
+    8:  { title: "Noche 8",  poster: "/haunted-house.png", pistas: [] },
+    9:  { title: "Noche 9",  poster: "/haunted-house.png", pistas: [] },
+    10: { title: "Noche 10", poster: "/haunted-house.png", pistas: [] },
+    11: { title: "Noche 11", poster: "/haunted-house.png", pistas: [] },
+    12: { title: "Noche 12", poster: "/haunted-house.png", pistas: [] },
+    13: { title: "Noche 13", poster: "/haunted-house.png", pistas: [] },
+    14: { title: "Noche 14", poster: "/haunted-house.png", pistas: [] },
+    15: { title: "Noche 15", poster: "/haunted-house.png", pistas: [] },
+    16: { title: "Noche 16", poster: "/haunted-house.png", pistas: [] },
+    17: { title: "Noche 17", poster: "/haunted-house.png", pistas: [] },
+    18: { title: "Noche 18", poster: "/haunted-house.png", pistas: [] },
+    19: { title: "Noche 19", poster: "/haunted-house.png", pistas: [] },
+    20: { title: "Noche 20", poster: "/haunted-house.png", pistas: [] },
+    21: { title: "Noche 21", poster: "/haunted-house.png", pistas: [] },
+    22: { title: "Noche 22", poster: "/haunted-house.png", pistas: [] },
+    23: { title: "Noche 23", poster: "/haunted-house.png", pistas: [] },
+    24: { title: "Noche 24", poster: "/haunted-house.png", pistas: [] },
+    25: { title: "Noche 25", poster: "/haunted-house.png", pistas: [] },
+    26: { title: "Noche 26", poster: "/haunted-house.png", pistas: [] },
+    27: { title: "Noche 27", poster: "/haunted-house.png", pistas: [] },
+    28: { title: "Noche 28", poster: "/haunted-house.png", pistas: [] },
+    29: { title: "Noche 29", poster: "/haunted-house.png", pistas: [] },
+    30: { title: "Noche 30", poster: "/haunted-house.png", pistas: [] },
+    31: { title: "🎃 Halloween", poster: "/haunted-house.png", pistas: [] }
+  }
+};
