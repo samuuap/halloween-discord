@@ -6,7 +6,7 @@ export const CONFIG = {
 
   days: {
     1:  { title: "Noche 1",  poster: "/haunted-house.png", pistas: ["hola"] },
-    2:  { title: "Noche 2",  poster: "/haunted-house.png", pistas: [] },
+    2:  { title: "Noche 2",  poster: "/haunted-house.png", pistas: ["hola"] },
     3:  { title: "Noche 3",  poster: "/haunted-house.png", pistas: [] },
     4:  { title: "Noche 4",  poster: "/haunted-house.png", pistas: [] },
     5:  { title: "Noche 5",  poster: "/haunted-house.png", pistas: [] },
