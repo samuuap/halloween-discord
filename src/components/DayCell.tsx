@@ -28,17 +28,18 @@ export default function DayCell({
   const title = data?.title ?? `Noche ${day}`;
   const posterSrc = data?.poster || "/haunted-house.png";
 
-  const box = (
+  // Contenido visual de la celda
+  const Box = (
     <div
       className={clsx(
         "relative rounded-2xl border overflow-hidden group touch-manipulation",
-        // Altura más compacta para que quepan 7 columnas en móvil
         "min-h-[72px] sm:min-h-[100px] md:min-h-[130px]",
         "border-white/10",
         isToday && "outline outline-2 outline-dashed outline-[rgba(255,107,0,.5)]",
-        // Hover en desktop (md+): borde verde + glow
-        unlocked && "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
+        unlocked &&
+          "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
       )}
+      title={unlocked ? "Abierto" : "Bloqueado"}
     >
       {/* Imagen de fondo */}
       <img
@@ -60,11 +61,14 @@ export default function DayCell({
       {/* Candado centrado si está bloqueado */}
       {!unlocked && (
         <div className="absolute inset-0 grid place-items-center z-[1] pointer-events-none" aria-hidden>
-          {/* Asegúrate de tener /public/lock.png */}
+          {/* /public/lock.png -> tu candado personalizado */}
           <img
             src="/lock.png"
-            alt="Bloqueado"
-            className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]"
+            alt=""
+            className={clsx(
+              "w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]",
+              "motion-safe:group-hover:animate-vibrate"
+            )}
           />
         </div>
       )}
@@ -83,18 +87,19 @@ export default function DayCell({
         </div>
       </div>
 
-      {/* Celda clicable si está desbloqueada (tap con micro-zoom en móvil) */}
-      {unlocked ? (
-        <Link
-          to={`/day/${day}`}
-          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded-2xl active:scale-[1.02] active:transition-transform active:duration-150"
-          aria-label={`Ver pistas del día ${day}`}
-        >
-          {box}
-        </Link>
-      ) : (
-        box
-      )}
+      {/* 👉 Ahora SIEMPRE clicable: tanto desbloqueadas como bloqueadas */}
+      <Link
+        to={`/day/${day}`}
+        className={clsx(
+          "block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400",
+          "active:scale-[1.02] active:transition-transform active:duration-150",
+          unlocked ? "cursor-pointer" : "cursor-pointer"
+        )}
+        aria-label={`Abrir página del día ${day}`}
+        title={`Abrir página del día ${day}`}
+      >
+        {Box}
+      </Link>
     </div>
   );
 }

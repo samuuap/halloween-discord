@@ -23,6 +23,25 @@ export default {
       },
       boxShadow: {
         ring: "0 0 0 3px rgba(255,107,0,.2), 0 10px 30px rgba(0,0,0,.5)"
+      },
+      // 👇 NUEVO: keyframes + animation para vibrar el candado
+      keyframes: {
+        vibrate: {
+          "0%":   { transform: "translate3d(0,0,0) rotate(0deg)" },
+          "10%":  { transform: "translate3d(-1px, 0, 0) rotate(-1deg)" },
+          "20%":  { transform: "translate3d(1px, 0, 0) rotate(1deg)" },
+          "30%":  { transform: "translate3d(-1px, 0, 0) rotate(0deg)" },
+          "40%":  { transform: "translate3d(1px, 0, 0) rotate(1deg)" },
+          "50%":  { transform: "translate3d(-1px, 0, 0) rotate(-1deg)" },
+          "60%":  { transform: "translate3d(1px, 0, 0) rotate(0deg)" },
+          "70%":  { transform: "translate3d(-1px, 0, 0) rotate(-1deg)" },
+          "80%":  { transform: "translate3d(1px, 0, 0) rotate(1deg)" },
+          "90%":  { transform: "translate3d(-1px, 0, 0) rotate(0deg)" },
+          "100%": { transform: "translate3d(0,0,0) rotate(0deg)" }
+        }
+      },
+      animation: {
+        vibrate: "vibrate 0.4s linear infinite"
       }
     }
   },

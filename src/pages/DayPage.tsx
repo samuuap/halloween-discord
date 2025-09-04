@@ -1,45 +1,26 @@
 // src/components/DayPage.tsx
 import { Link, useParams } from "react-router-dom";
 import { CONFIG } from "@/data/config";
-import { getDevOverrides, isUnlockedDevAware, nowMadrid } from "@/lib/time";
-import { useMemo, useState } from "react";
+import { isUnlockedDevAware, nowMadrid } from "@/lib/time";
+import { useMemo } from "react";
 import clsx from "clsx";
-
-const SPOILERS_KEY = "oct-spoilers-hidden";
 
 export default function DayPage() {
   const params = useParams();
   const day = Number(params.day);
   const data: any = (CONFIG.days as any)[day];
 
-  const [spoilersHidden, setSpoilersHidden] = useState<boolean>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(SPOILERS_KEY) ?? "false");
-    } catch {
-      return false;
-    }
-  });
-
   const unlocked = useMemo(
     () => isUnlockedDevAware(day, CONFIG.year, CONFIG.month),
     [day]
   );
-
-  const pistas: string[] = (Array.isArray(data?.pistas)
-    ? data.pistas
-    : Array.isArray(data?.clues)
-    ? data.clues
-    : []) as string[];
 
   if (!Number.isInteger(day) || day < 1 || day > 31) {
     return (
       <div className="max-w-grid mx-auto px-4 py-10">
         <h1 className="text-2xl font-extrabold">Día no válido</h1>
         <p className="text-muted">La ruta no corresponde a un día de octubre.</p>
-        <Link
-          className="inline-block mt-4 px-3 py-2 rounded-xl border border-white/15 hover:shadow-ring"
-          to="/"
-        >
+        <Link className="inline-block mt-4 px-3 py-2 rounded-xl border border-white/15 hover:shadow-ring" to="/">
           ← Volver al calendario
         </Link>
       </div>
@@ -47,26 +28,19 @@ export default function DayPage() {
   }
 
   const monthName = [
-    "enero",
-    "febrero",
-    "marzo",
-    "abril",
-    "mayo",
-    "junio",
-    "julio",
-    "agosto",
-    "septiembre",
-    "octubre",
-    "noviembre",
-    "diciembre"
+    "enero","febrero","marzo","abril","mayo","junio",
+    "julio","agosto","septiembre","octubre","noviembre","diciembre"
   ][CONFIG.month];
 
   const today = nowMadrid();
   const isToday =
-    today.y === CONFIG.year &&
-    today.m === CONFIG.month + 1 &&
-    today.d === day;
-  const devForced = !!getDevOverrides()[day];
+    today.y === CONFIG.year && today.m === CONFIG.month + 1 && today.d === day;
+
+  const pistas: string[] = (Array.isArray(data?.pistas)
+    ? data.pistas
+    : Array.isArray(data?.clues)
+    ? data.clues
+    : []) as string[];
 
   return (
     <div className="max-w-grid mx-auto px-4 py-8">
@@ -81,16 +55,12 @@ export default function DayPage() {
             </h1>
             <div className="text-muted text-sm">
               {unlocked
-                ? isToday
-                  ? "¡Hoy es el día, suerte adivinando!"
-                  : "Día ya desbloqueado."
-                : "Este día aún está bloqueado."}
-              {unlocked && devForced && (
-                <span className="ml-2 text-[11px] opacity-80">[forzado]</span>
-              )}
+                ? (isToday ? "¡Hoy es el día, suerte adivinando!" : "Día ya desbloqueado.")
+                : "Vista previa de las pistas (bloqueadas)."}
             </div>
           </div>
         </div>
+
         <div className="flex gap-2 flex-wrap">
           <Link
             to="/"
@@ -98,16 +68,6 @@ export default function DayPage() {
           >
             ← Volver
           </Link>
-          <button
-            onClick={() => {
-              const next = !spoilersHidden;
-              setSpoilersHidden(next);
-              localStorage.setItem(SPOILERS_KEY, JSON.stringify(next));
-            }}
-            className="px-3 py-2 rounded-xl border border-accent2/40 bg-[rgba(124,58,237,.08)] hover:shadow-ring transition font-semibold"
-          >
-            {spoilersHidden ? "👀 Mostrar pistas" : "🙈 Ocultar pistas"}
-          </button>
           {CONFIG.discordUrl && unlocked && (
             <a
               href={CONFIG.discordUrl}
@@ -121,20 +81,10 @@ export default function DayPage() {
         </div>
       </header>
 
-      {/* 🔒 Sin contador local: solo mensaje simple cuando está bloqueado */}
-      {!unlocked && (
-        <div className="mb-6 p-4 rounded-2xl border border-white/10 bg-white/5">
-          <div className="font-semibold mb-1">🔒 Bloqueado</div>
-          <div className="text-sm text-muted">
-            Este contenido se desbloqueará a la hora programada.
-          </div>
-        </div>
-      )}
-
+      {/* Tarjeta principal: sin banner de "Bloqueado" */}
       <div
         className={clsx(
-          "relative p-4 rounded-2xl border bg-white/[.04] border-white/10 overflow-hidden",
-          !unlocked && "saturate-[.4] contrast-90 opacity-85"
+          "relative p-4 rounded-2xl border bg-white/[.04] border-white/10 overflow-hidden"
         )}
       >
         <div className="flex flex-col md:flex-row gap-4">
@@ -154,30 +104,25 @@ export default function DayPage() {
               {data?.title ?? `Noche ${day}`}
             </h2>
 
+            {/* Pistas: si está bloqueado, se muestran borrosas y no interactuables */}
             <div
               className={clsx(
                 "flex flex-col gap-2",
-                spoilersHidden && unlocked && "blur-[6px] select-none"
+                !unlocked && "blur-[6px] select-none pointer-events-none"
               )}
             >
-              {unlocked ? (
-                Array.isArray(pistas) && pistas.length ? (
-                  pistas.map((p: string, i: number) => (
-                    <div
-                      key={i}
-                      className="p-2 rounded-lg border border-white/20 border-dashed bg-white/5 text-sm"
-                    >
-                      🕵️ {p}
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-2 rounded-lg border border-white/20 border-dashed bg-white/5 text-sm">
-                    (Añade pistas en config.ts)
+              {pistas.length ? (
+                pistas.map((p: string, i: number) => (
+                  <div
+                    key={i}
+                    className="p-2 rounded-lg border border-white/20 border-dashed bg-white/5 text-sm"
+                  >
+                    🕵️ {p}
                   </div>
-                )
+                ))
               ) : (
                 <div className="p-2 rounded-lg border border-white/20 border-dashed bg-white/5 text-sm">
-                  Las pistas se mostrarán al desbloquear el día.
+                  (Añade pistas en <code>config.ts</code>)
                 </div>
               )}
             </div>
@@ -188,7 +133,10 @@ export default function DayPage() {
               <img
                 src={data.poster}
                 alt=""
-                className="rounded-xl border border-white/10 w-full"
+                className={clsx(
+                  "rounded-xl border border-white/10 w-full",
+                  !unlocked && "opacity-75"
+                )}
                 loading="lazy"
               />
             </div>
