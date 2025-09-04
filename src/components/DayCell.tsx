@@ -28,14 +28,16 @@ export default function DayCell({
   const title = data?.title ?? `Noche ${day}`;
   const posterSrc = data?.poster || "/haunted-house.png";
 
-  const CellBox = (
+  const box = (
     <div
       className={clsx(
-        "relative rounded-2xl border overflow-hidden group",
-        "min-h-[130px] md:min-h-[150px]",
-        unlocked ? "border-white/10" : "border-white/10",
+        "relative rounded-2xl border overflow-hidden group touch-manipulation",
+        // Altura adaptativa por breakpoints
+        "min-h-[120px] sm:min-h-[130px] md:min-h-[150px]",
+        "border-white/10",
         isToday && "outline outline-2 outline-dashed outline-[rgba(255,107,0,.5)]",
-        unlocked && "transition-all duration-300 ease-out hover:border-green-400 hover:shadow-[0_0_15px_rgba(0,255,0,0.4)]"
+        // Hover bonito SOLO en desktop (md+). En móvil evitamos hover.
+        unlocked && "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
       )}
     >
       {/* Imagen */}
@@ -43,22 +45,22 @@ export default function DayCell({
         src={posterSrc}
         alt=""
         className={clsx(
-          "absolute inset-0 w-full h-full object-contain select-none transition-transform duration-300 ease-out",
-          unlocked ? "opacity-100 group-hover:scale-105" : "opacity-90 blur-[2px] brightness-75"
+          "absolute inset-0 w-full h-full object-contain select-none",
+          // En desktop (md+): zoom suave al hover
+          unlocked
+            ? "opacity-100 md:transition-transform md:duration-300 md:ease-out md:group-hover:scale-105"
+            : "opacity-90 blur-[2px] brightness-75"
         )}
         draggable={false}
         loading="lazy"
       />
 
-      {/* Oscurecido general */}
+      {/* Oscurecido para mejorar contraste del título/íconos */}
       <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
-      {/* Icono centrado solo si está bloqueado */}
+      {/* Candado centrado si está bloqueado */}
       {!unlocked && (
-        <div
-          className="absolute inset-0 grid place-items-center z-[1] pointer-events-none"
-          aria-hidden
-        >
+        <div className="absolute inset-0 grid place-items-center z-[1] pointer-events-none" aria-hidden>
           <div className="text-4xl md:text-5xl drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]">🔒</div>
         </div>
       )}
@@ -66,28 +68,29 @@ export default function DayCell({
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Franja superior: solo título */}
-      <div className="h-7 flex items-center justify-between gap-2">
+    <div className="flex flex-col gap-1.5 sm:gap-2">
+      {/* Franja superior: título truncado, tamaños adaptativos */}
+      <div className="h-6 sm:h-7 flex items-center justify-between gap-2">
         <div
-          className="font-extrabold text-[13px] md:text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
+          className="font-extrabold text-[12px] sm:text-[13px] md:text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
           title={title}
         >
           {title}
         </div>
       </div>
 
-      {/* Celda clicable si está desbloqueada */}
+      {/* Celda clicable si está desbloqueada.
+          En móvil, micro-zoom al tap (active). */}
       {unlocked ? (
         <Link
           to={`/day/${day}`}
-          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded-2xl"
+          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded-2xl active:scale-[1.02] active:transition-transform active:duration-150"
           aria-label={`Ver pistas del día ${day}`}
         >
-          {CellBox}
+          {box}
         </Link>
       ) : (
-        CellBox
+        box
       )}
     </div>
   );
