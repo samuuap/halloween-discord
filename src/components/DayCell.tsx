@@ -32,21 +32,19 @@ export default function DayCell({
     <div
       className={clsx(
         "relative rounded-2xl border overflow-hidden group touch-manipulation",
-        // Altura adaptativa por breakpoints
         "min-h-[120px] sm:min-h-[130px] md:min-h-[150px]",
         "border-white/10",
         isToday && "outline outline-2 outline-dashed outline-[rgba(255,107,0,.5)]",
-        // Hover bonito SOLO en desktop (md+). En móvil evitamos hover.
-        unlocked && "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
+        unlocked &&
+          "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
       )}
     >
-      {/* Imagen */}
+      {/* Imagen de fondo */}
       <img
         src={posterSrc}
         alt=""
         className={clsx(
           "absolute inset-0 w-full h-full object-contain select-none",
-          // En desktop (md+): zoom suave al hover
           unlocked
             ? "opacity-100 md:transition-transform md:duration-300 md:ease-out md:group-hover:scale-105"
             : "opacity-90 blur-[2px] brightness-75"
@@ -55,13 +53,17 @@ export default function DayCell({
         loading="lazy"
       />
 
-      {/* Oscurecido para mejorar contraste del título/íconos */}
+      {/* Oscurecido */}
       <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
       {/* Candado centrado si está bloqueado */}
       {!unlocked && (
         <div className="absolute inset-0 grid place-items-center z-[1] pointer-events-none" aria-hidden>
-          <div className="text-4xl md:text-5xl drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]">🔒</div>
+          <img
+            src="/lock.png"
+            alt="Bloqueado"
+            className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]"
+          />
         </div>
       )}
     </div>
@@ -69,7 +71,7 @@ export default function DayCell({
 
   return (
     <div className="flex flex-col gap-1.5 sm:gap-2">
-      {/* Franja superior: título truncado, tamaños adaptativos */}
+      {/* Título arriba */}
       <div className="h-6 sm:h-7 flex items-center justify-between gap-2">
         <div
           className="font-extrabold text-[12px] sm:text-[13px] md:text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
@@ -79,8 +81,6 @@ export default function DayCell({
         </div>
       </div>
 
-      {/* Celda clicable si está desbloqueada.
-          En móvil, micro-zoom al tap (active). */}
       {unlocked ? (
         <Link
           to={`/day/${day}`}
