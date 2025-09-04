@@ -1,3 +1,4 @@
+// src/components/Calendar.tsx
 import { CONFIG } from "@/data/config";
 import { daysInMonth, firstDowOffsetMondayFirst, setRemoteOverrides } from "@/lib/time";
 import DayCell from "./DayCell";
@@ -9,7 +10,7 @@ export default function Calendar() {
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    // Únicamente descargar y aplicar estado global (sin admin ni overrides por URL)
+    // Descargar y aplicar estado global (sin admin ni overrides por URL)
     fetchOverrides().then((map) => {
       setRemoteOverrides(map);
       setVersion((v) => v + 1);
@@ -37,12 +38,17 @@ export default function Calendar() {
             <span className="font-display text-2xl">🎃</span>
           </div>
           <div>
-            <h1 className="m-0 font-extrabold tracking-tight text-[clamp(20px,2.4vw,28px)]">Maratón de Octubre</h1>
-            <div className="text-muted text-sm">Desbloqueo diario con pistas para adivinar la peli en Discord</div>
+            <h1 className="m-0 font-extrabold tracking-tight text-[clamp(20px,2.4vw,28px)]">
+              Maratón de Octubre
+            </h1>
+            <div className="text-muted text-sm">
+              Desbloqueo diario con pistas para adivinar la peli en Discord
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap justify-end">
+          {/* ÚNICO contador global */}
           <Countdown year={CONFIG.year} monthIndex0={CONFIG.month} />
           {CONFIG.discordUrl && (
             <a
@@ -59,13 +65,18 @@ export default function Calendar() {
 
       <div className="grid grid-cols-7 gap-3 mb-1">
         {dows.map((d) => (
-          <div key={d} className="text-center font-bold text-muted uppercase tracking-wide text-xs py-1">{d}</div>
+          <div
+            key={d}
+            className="text-center font-bold text-muted uppercase tracking-wide text-xs py-1"
+          >
+            {d}
+          </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-4">
         {Array.from({ length: offset }).map((_, i) => (
-          <div key={`empty-${i}`} className="rounded-2xl min-h-[110px]" />
+          <div key={`empty-${i}`} className="rounded-2xl min-h-[110px]"></div>
         ))}
         {Array.from({ length: totalDays }).map((_, idx) => {
           const day = idx + 1;
@@ -80,14 +91,6 @@ export default function Calendar() {
           );
         })}
       </div>
-
-      <footer className="flex justify-between items-center text-muted text-sm mt-7 flex-wrap gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="w-2.5 h-2.5 rounded-full bg-good inline-block" /> Desbloqueado
-          <span className="w-2.5 h-2.5 rounded-full bg-bad inline-block" /> Bloqueado
-        </div>
-        <div>Hecho con 💀 para noches de cine.</div>
-      </footer>
     </div>
   );
 }
