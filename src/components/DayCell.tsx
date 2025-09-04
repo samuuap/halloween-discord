@@ -32,11 +32,12 @@ export default function DayCell({
     <div
       className={clsx(
         "relative rounded-2xl border overflow-hidden group touch-manipulation",
-        "min-h-[120px] sm:min-h-[130px] md:min-h-[150px]",
+        // Altura más compacta para que quepan 7 columnas en móvil
+        "min-h-[72px] sm:min-h-[100px] md:min-h-[130px]",
         "border-white/10",
         isToday && "outline outline-2 outline-dashed outline-[rgba(255,107,0,.5)]",
-        unlocked &&
-          "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
+        // Hover en desktop (md+): borde verde + glow
+        unlocked && "md:transition-all md:duration-300 md:ease-out md:hover:border-green-400 md:hover:shadow-[0_0_15px_rgba(0,255,0,0.35)]"
       )}
     >
       {/* Imagen de fondo */}
@@ -53,16 +54,17 @@ export default function DayCell({
         loading="lazy"
       />
 
-      {/* Oscurecido */}
+      {/* Oscurecido para contraste */}
       <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
       {/* Candado centrado si está bloqueado */}
       {!unlocked && (
         <div className="absolute inset-0 grid place-items-center z-[1] pointer-events-none" aria-hidden>
+          {/* Asegúrate de tener /public/lock.png */}
           <img
             src="/lock.png"
             alt="Bloqueado"
-            className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]"
+            className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]"
           />
         </div>
       )}
@@ -70,17 +72,18 @@ export default function DayCell({
   );
 
   return (
-    <div className="flex flex-col gap-1.5 sm:gap-2">
-      {/* Título arriba */}
-      <div className="h-6 sm:h-7 flex items-center justify-between gap-2">
+    <div className="flex flex-col gap-1">
+      {/* Franja superior: título compacto */}
+      <div className="h-5 sm:h-6 md:h-7 flex items-center justify-between gap-2">
         <div
-          className="font-extrabold text-[12px] sm:text-[13px] md:text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
+          className="font-extrabold text-[10px] sm:text-[12px] md:text-[13px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
           title={title}
         >
           {title}
         </div>
       </div>
 
+      {/* Celda clicable si está desbloqueada (tap con micro-zoom en móvil) */}
       {unlocked ? (
         <Link
           to={`/day/${day}`}
