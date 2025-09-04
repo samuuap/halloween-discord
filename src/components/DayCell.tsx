@@ -1,3 +1,4 @@
+// src/components/DayCell.tsx
 import { CONFIG } from "@/data/config";
 import { isUnlockedDevAware, nowMadrid } from "@/lib/time";
 import clsx from "clsx";
@@ -21,15 +22,67 @@ export default function DayCell({
   spoilersHidden: boolean;
 }) {
   const unlocked = isUnlockedDevAware(day, CONFIG.year, CONFIG.month);
+
   const tm = nowMadrid();
   const isToday = tm.y === CONFIG.year && tm.m === CONFIG.month + 1 && tm.d === day;
 
   const title = data?.title ?? `Noche ${day}`;
   const posterSrc = data?.poster || "/haunted-house.png";
 
+  // ====== Caja visual de la celda (imagen + overlay ícono centrado) ======
+  const CellBox = (
+    <div
+      className={clsx(
+        // group para permitir efectos hover desde hijos (lupa con borde)
+        "relative rounded-2xl border overflow-hidden group",
+        "min-h-[130px] md:min-h-[150px]",
+        unlocked ? "border-white/10" : "border-white/10",
+        isToday && "outline outline-2 outline-dashed outline-[rgba(255,107,0,.5)]"
+      )}
+    >
+      {/* Imagen */}
+      <img
+        src={posterSrc}
+        alt=""
+        className={clsx(
+          "absolute inset-0 w-full h-full object-contain select-none",
+          unlocked ? "opacity-100" : "opacity-90 blur-[2px] brightness-75"
+        )}
+        draggable={false}
+        loading="lazy"
+      />
+
+      {/* Oscurecido general */}
+      <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+
+      {/* Ícono centrado:
+          - 🔎 cuando está desbloqueado (con borde que se pone verde al hover)
+          - 🔒 cuando está bloqueado
+      */}
+      <div className="absolute inset-0 grid place-items-center z-[1]" aria-hidden>
+        {unlocked ? (
+          <div
+            className={clsx(
+              // círculo contenedor para borde de la lupa
+              "rounded-full border-2 border-transparent p-2 transition-colors duration-150",
+              // al pasar el ratón por la celda (group-hover), pone borde verde
+              "group-hover:border-green-400"
+            )}
+          >
+            <span className="text-4xl md:text-5xl drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]">
+              🔎
+            </span>
+          </div>
+        ) : (
+          <div className="text-4xl md:text-5xl drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]">🔒</div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-2">
-      {/* ====== FRANJA SUPERIOR: SOLO TÍTULO + CTA ====== */}
+      {/* ====== FRANJA SUPERIOR: SOLO TÍTULO (sin CTA) ====== */}
       <div className="h-7 flex items-center justify-between gap-2">
         <div
           className="font-extrabold text-[13px] md:text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
@@ -37,58 +90,25 @@ export default function DayCell({
         >
           {title}
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {unlocked ? (
-            <Link
-              to={`/day/${day}`}
-              className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border font-semibold
-                         border-green-400 bg-green-500/20 text-green-300 hover:bg-green-500/30 hover:shadow-ring transition"
-              title="Ver pistas en página dedicada"
-            >
-              ✅ Ver pistas
-            </Link>
-          ) : null}
-        </div>
+        {/* Sin botón "Ver pistas": lo guiamos con la lupa */}
       </div>
 
-      {/* ====== CELDA = SOLO IMAGEN; BLOQUEADO: CANDADO CENTRADO ====== */}
-      <div
-        className={clsx(
-          "relative rounded-2xl border overflow-hidden",
-          "min-h-[130px] md:min-h-[150px]",
-          unlocked ? "border-green-500/30" : "border-white/10",
-          isToday && "outline outline-2 outline-dashed outline-[rgba(255,107,0,.5)]"
-        )}
-      >
-        {/* Imagen */}
-        <img
-          src={posterSrc}
-          alt=""
-          className={clsx(
-            "absolute inset-0 w-full h-full object-contain select-none",
-            unlocked ? "opacity-100" : "opacity-90 blur-[2px] brightness-75"
-          )}
-          draggable={false}
-          loading="lazy"
-        />
-
-        {/* Oscurecido general */}
-        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
-
-        {/* Tinte verde si desbloqueado */}
-        {unlocked && <div className="absolute inset-0 bg-green-500/10 pointer-events-none" />}
-
-        {/* 🔒 Candado CENTRADO cuando está bloqueado */}
-        {!unlocked && (
-          <div
-            className="absolute inset-0 grid place-items-center z-[1] pointer-events-none"
-            aria-hidden
-          >
-            <div className="text-4xl md:text-5xl drop-shadow-[0_2px_6px_rgba(0,0,0,.6)]">🔒</div>
-          </div>
-        )}
-      </div>
+      {/* ====== CELDA:
+            - Si está desbloqueado: toda la caja es clicable a /day/:day
+            - Si está bloqueado: solo se muestra como caja normal
+      ====== */}
+      {unlocked ? (
+        <Link
+          to={`/day/${day}`}
+          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 rounded-2xl"
+          aria-label={`Ver pistas del día ${day}`}
+          title="Ver pistas"
+        >
+          {CellBox}
+        </Link>
+      ) : (
+        CellBox
+      )}
     </div>
   );
 }
