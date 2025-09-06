@@ -213,6 +213,39 @@ export default function DayPage() {
     </div>
   );
 
+  // ---------- AUTOSCROLL EN EL MODAL DE RESULTADO (MÓVIL) ----------
+  const mobileModalScrollRef = useRef<HTMLDivElement | null>(null);
+  const [finalImageLoaded, setFinalImageLoaded] = useState(false);
+
+  // Cuando se abre el modal en móvil, hacemos scroll automático hasta el final
+  useEffect(() => {
+    if (!giveUpOpen || !isMobileViewport()) return;
+    const el = mobileModalScrollRef.current;
+    if (!el) return;
+
+    // función que realiza el scroll automático de "tour" hacia toda la info
+    const doAutoScroll = () => {
+      // coloca al principio por si había una posición previa
+      el.scrollTo({ top: 0, behavior: "auto" });
+      // tras un pequeño delay para asegurar alturas correctas, baja suavemente hasta el final
+      setTimeout(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+      }, 200);
+    };
+
+    // si hay imagen final, esperamos a que cargue para tener la altura real
+    if (cfg?.finalImage) {
+      if (finalImageLoaded) doAutoScroll();
+    } else {
+      doAutoScroll();
+    }
+  }, [giveUpOpen, finalImageLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // reset flag al cerrar
+  useEffect(() => {
+    if (!giveUpOpen) setFinalImageLoaded(false);
+  }, [giveUpOpen]);
+
   return (
     <div
       className={clsx(
@@ -297,7 +330,7 @@ export default function DayPage() {
               to="/"
               className="inline-block mt-5 md:mt-7 px-6 md:px-12 py-3 md:py-5 bg-purple-900 rounded-2xl md:rounded-3xl text-white shadow text-lg md:text-3xl font-bold hover:bg-purple-700 transition"
             >
-              ← Volver al calendario
+              ← Volver
             </Link>
           </div>
         )}
@@ -456,45 +489,52 @@ export default function DayPage() {
       {/* ======== MODAL SOLUCIÓN ======== */}
       {giveUpOpen && (
         <>
-          {/* --- MÓVIL: pantalla completa, contenido centrado --- */}
+          {/* --- MÓVIL: SCROLL automático y recuadro morado --- */}
           <div
-            className="md:hidden fixed inset-0 z-50 bg-black/85 backdrop-blur"
+            className="md:hidden fixed inset-0 z-50 bg-black/85 backdrop-blur overflow-y-auto [overscroll-behavior:contain]"
             role="dialog"
             aria-modal="true"
+            style={{ touchAction: "pan-y" }}
+            ref={mobileModalScrollRef}
           >
-            <div className="w-full h-[100dvh] grid grid-rows-[auto,1fr,auto] px-4 pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+12px)]">
-              <button
-                onClick={() => setGiveUpOpen(false)}
-                className="justify-self-end text-4xl text-gray-300 hover:text-red-300"
-                aria-label="Cerrar solución"
-              >
-                ×
-              </button>
+            <div className="min-h-[100dvh] flex flex-col px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-[calc(env(safe-area-inset-bottom)+16px)]">
+              {/* Header sticky con botón cerrar */}
+              <div className="sticky top-0 z-10 -mx-4 px-4 pt-2 pb-2 bg-gradient-to-b from-black/85 to-transparent">
+                <button
+                  onClick={() => setGiveUpOpen(false)}
+                  className="ml-auto block text-4xl text-gray-300 hover:text-red-300"
+                  aria-label="Cerrar solución"
+                >
+                  ×
+                </button>
+              </div>
 
-              {/* Centro: IMAGEN CENTRADA */}
-              <div className="overflow-hidden grid place-items-center">
+              {/* Contenido desplazable */}
+              <div className="flex-1 flex flex-col items-center text-center gap-4">
                 {cfg?.finalImage && (
                   <img
                     src={cfg.finalImage}
                     alt="Solución"
                     className="max-h-[58vh] w-auto rounded-2xl shadow-2xl object-contain"
+                    onLoad={() => setFinalImageLoaded(true)}
                   />
                 )}
-              </div>
 
-              {/* Pie: título + sinopsis + cerrar */}
-              <div className="space-y-3 text-center">
-                <div className="text-2xl font-bold text-purple-200">
-                  {cfg?.finalTitle ?? Title}
+                {/* Recuadro morado para título + sinopsis */}
+                <div className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl">
+                  <div className="text-2xl font-bold text-purple-200">
+                    {cfg?.finalTitle ?? Title}
+                  </div>
+                  <div className="mt-2 text-base text-gray-200 whitespace-pre-line">
+                    {cfg?.synopsis?.trim()
+                      ? cfg.synopsis
+                      : "Sinopsis no disponible. Añádela en config.ts"}
+                  </div>
                 </div>
-                <div className="text-base text-gray-200 whitespace-pre-line">
-                  {cfg?.synopsis?.trim()
-                    ? cfg.synopsis
-                    : "Sinopsis no disponible. Añádela en config.ts"}
-                </div>
+
                 <button
                   onClick={() => setGiveUpOpen(false)}
-                  className="mt-1 bg-purple-700 hover:bg-purple-800 px-6 py-2 text-white rounded-full shadow-lg text-base font-bold"
+                  className="mt-2 bg-purple-700 hover:bg-purple-800 px-6 py-2 text-white rounded-full shadow-lg text-base font-bold"
                 >
                   Cerrar
                 </button>
@@ -502,39 +542,50 @@ export default function DayPage() {
             </div>
           </div>
 
-          {/* --- DESKTOP: tarjeta centrada --- */}
-          <div className="hidden md:flex fixed z-50 inset-0 items-center justify-center bg-black/80 backdrop-blur" role="dialog" aria-modal="true">
-            <div className="bg-[#16111e] text-white max-w-2xl w-full rounded-[36px] p-8 shadow-2xl relative border-2 border-purple-900 mx-4">
-              <button
-                onClick={() => setGiveUpOpen(false)}
-                className="absolute right-6 top-6 text-3xl text-gray-400 hover:text-red-300"
-                aria-label="Cerrar solución"
-              >
-                ×
-              </button>
-              <div className="flex flex-col items-center gap-6 mt-6 text-center">
-                <div className="text-3xl font-black text-purple-300">Solución</div>
-                <div className="text-2xl font-semibold">
-                  {cfg?.finalTitle ?? Title}
+          {/* --- DESKTOP: tarjeta con scroll si hace falta --- */}
+          <div
+            className="hidden md:flex fixed z-50 inset-0 items-center justify-center bg-black/80 backdrop-blur"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="bg-[#16111e] text-white max-w-2xl w-full rounded-[36px] p-0 shadow-2xl border-2 border-purple-900 mx-4">
+              {/* Contenedor con scroll */}
+              <div className="max-h-[90vh] overflow-y-auto [overscroll-behavior:contain] rounded-[36px]">
+                <div className="relative p-8 text-center">
+                  <button
+                    onClick={() => setGiveUpOpen(false)}
+                    className="absolute right-6 top-6 text-3xl text-gray-400 hover:text-red-300"
+                    aria-label="Cerrar solución"
+                  >
+                    ×
+                  </button>
+                  <div className="flex flex-col items-center gap-6 mt-6">
+                    <div className="text-3xl font-black text-purple-300">Solución</div>
+                    <div className="text-2xl font-semibold">
+                      {cfg?.finalTitle ?? Title}
+                    </div>
+                    {cfg?.finalImage && (
+                      <img
+                        src={cfg.finalImage}
+                        alt="Solución"
+                        className="rounded-2xl shadow-lg max-h-[400px] mb-4 object-contain"
+                      />
+                    )}
+                    <div className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl text-left">
+                      <div className="text-xl text-gray-200 whitespace-pre-line">
+                        {cfg?.synopsis?.trim()
+                          ? cfg.synopsis
+                          : "Sinopsis no disponible. Añádela en config.ts"}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setGiveUpOpen(false)}
+                      className="mt-2 bg-purple-700 hover:bg-purple-800 px-5 py-2 text-white rounded-full shadow-lg text-base font-bold"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
                 </div>
-                {cfg?.finalImage && (
-                  <img
-                    src={cfg.finalImage}
-                    alt="Solución"
-                    className="rounded-2xl shadow-lg max-h-[400px] mb-4 object-contain"
-                  />
-                )}
-                <div className="text-xl text-gray-200 whitespace-pre-line">
-                  {cfg?.synopsis?.trim()
-                    ? cfg.synopsis
-                    : "Sinopsis no disponible. Añádela en config.ts"}
-                </div>
-                <button
-                  onClick={() => setGiveUpOpen(false)}
-                  className="mt-1 bg-purple-700 hover:bg-purple-800 px-5 py-2 text-white rounded-full shadow-lg text-base font-bold"
-                >
-                  Cerrar
-                </button>
               </div>
             </div>
           </div>
