@@ -3,7 +3,7 @@
 import { Link, useParams } from "react-router-dom";
 import { CONFIG } from "@/data/config";
 import { isUnlockedDevAware, nowMadrid } from "@/lib/time";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import clsx from "clsx";
 
 type DayConfig = {
@@ -21,6 +21,47 @@ type DayConfig = {
 
 const TOTAL_STEPS = 4;
 
+// --- Hook local para detectar swipe horizontal (izquierda/derecha) --- //
+function useSwipe(opts: {
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
+  // umbrales
+  minDistance?: number; // px
+  maxOffAxis?: number;  // px
+  maxDurationMs?: number;
+}) {
+  const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    startRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const s = startRef.current;
+    if (!s) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - s.x;
+    const dy = t.clientY - s.y;
+    const dt = Date.now() - s.t;
+
+    const minDistance = opts.minDistance ?? 48;
+    const maxOffAxis = opts.maxOffAxis ?? 80;
+    const maxDurationMs = opts.maxDurationMs ?? 1000;
+
+    // evitar scrolls verticales y swipes muy lentos
+    if (Math.abs(dy) > maxOffAxis || dt > maxDurationMs) return;
+
+    if (dx <= -minDistance) {
+      opts.onSwipeLeft?.();
+    } else if (dx >= minDistance) {
+      opts.onSwipeRight?.();
+    }
+  };
+
+  return { onTouchStart, onTouchEnd };
+}
+
 export default function DayPage() {
   const params = useParams();
   const day = Number(params.day);
@@ -37,6 +78,28 @@ export default function DayPage() {
 
   const [step, setStep] = useState(1);
   const [giveUpOpen, setGiveUpOpen] = useState(false);
+
+  // Pista por swipe en móviles
+  const canNext = unlocked && step < TOTAL_STEPS;
+  const swipe = useSwipe({
+    onSwipeLeft: () => {
+      if (canNext) {
+        setStep((s) => Math.min(TOTAL_STEPS, s + 1));
+        setShowHint(false);
+      }
+    },
+  });
+
+  // Hint flotante en móviles
+  const [showHint, setShowHint] = useState(true);
+  useEffect(() => {
+    if (!canNext) {
+      setShowHint(false);
+      return;
+    }
+    const id = setTimeout(() => setShowHint(false), 4000);
+    return () => clearTimeout(id);
+  }, [canNext, step]);
 
   if (!Number.isInteger(day) || day < 1 || day > 31) {
     return (
@@ -107,7 +170,7 @@ export default function DayPage() {
           >
             ←
           </Link>
-          <div className="text-2xl font-extrabold tracking-tight text-purple-200">
+        <div className="text-2xl font-extrabold tracking-tight text-purple-200">
             Noche {day}
           </div>
           <div className="w-6" />
@@ -149,8 +212,15 @@ export default function DayPage() {
         </div>
       )}
 
-      {/* ======== CONTENIDO ======== */}
-      <div className="px-4 pb-[96px] md:pb-0"> {/* padding-bottom para dejar espacio a la action bar móvil */}
+      {/* ======== CONTENIDO (captura swipe en móviles) ======== */}
+      <div
+        className="px-4 pb-6 md:pb-0 select-none md:select-auto"
+        onTouchStart={swipe.onTouchStart}
+        onTouchEnd={swipe.onTouchEnd}
+        // permitir scroll vertical sin bloquear, pero detectar swipe horizontal
+        style={{ touchAction: "pan-y" }}
+        role="presentation"
+      >
         {/* Bloqueado (por hora o manual) */}
         {!unlocked && (
           <div className="flex flex-col items-center py-24 gap-6">
@@ -182,7 +252,7 @@ export default function DayPage() {
                   <div className="text-[5rem] md:text-7xl drop-shadow-lg mb-4">
                     {cfg?.emojis ?? "❓"}
                   </div>
-                  <div className="mt-1 text-3xl md:text-2xl text-purple-100 font-bold">
+                  <div className="mt-1 text-4xl md:text-2xl text-purple-100 font-bold">
                     1ª pista · Emojis
                   </div>
                 </div>
@@ -191,22 +261,22 @@ export default function DayPage() {
               {/* 2 · Actores (añade “(doblaje)” si animated=true) */}
               <Card visible={step >= 2} delayMs={60}>
                 <div className="bg-gradient-to-br from-orange-800/80 to-black/80 rounded-3xl px-5 py-6 md:p-5 shadow-xl flex flex-col items-center">
-                  <div className="text-3xl md:text-2xl font-bold mb-4 text-orange-100">
+                  <div className="text-4xl md:text-2xl font-bold mb-4 text-orange-100">
                     2ª pista · Actores
                   </div>
                   {Array.isArray(cfg?.actors) && cfg.actors.length ? (
-                    <div className="flex flex-wrap justify-center gap-3 md:gap-2 mt-1">
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-2 mt-2">
                       {cfg.actors.map((a, i) => (
                         <span
                           key={i}
-                          className="bg-purple-700 text-white rounded-[2rem] px-6 py-3 md:px-4 md:py-2 text-2xl md:text-xl shadow font-semibold"
+                          className="bg-purple-700 text-white rounded-[2rem] px-10 py-4 md:px-4 md:py-2 text-3xl md:text-xl shadow font-semibold"
                         >
                           {cfg?.animated ? `${a} (doblaje)` : a}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-2xl md:text-xl text-gray-300 mt-2">
+                    <div className="text-3xl md:text-xl text-gray-300 mt-2">
                       Sin actores registrados
                     </div>
                   )}
@@ -216,17 +286,17 @@ export default function DayPage() {
               {/* 3 · Póster (blur fuerte) */}
               <Card visible={step >= 3} delayMs={120}>
                 <div className="bg-black/90 rounded-3xl px-5 py-6 md:p-5 shadow-xl flex flex-col items-center">
-                  <div className="text-3xl md:text-2xl font-bold mb-5 md:mb-2 text-purple-200">
+                  <div className="text-4xl md:text-2xl font-bold mb-5 md:mb-2 text-purple-200">
                     3ª pista · Póster
                   </div>
                   {cfg?.poster ? (
                     <img
                       src={cfg.poster}
                       alt="Póster"
-                      className="rounded-2xl shadow-xl w-full max-w-xl md:max-w-[300px] max-h-[600px] md:max-h-[400px] object-contain border-4 md:border-2 border-purple-800 blur-2xl scale-110"
+                      className="rounded-2xl shadow-xl w-full max-w-xl md:max-w-[300px] max-h-[600px] md:max-h-[400px] object-contain border-4 md:border-2 border-purple-800 blur scale-110"
                     />
                   ) : (
-                    <div className="text-2xl md:text-xl text-gray-400">
+                    <div className="text-3xl md:text-xl text-gray-400">
                       Sube la URL del póster en config.ts
                     </div>
                   )}
@@ -236,7 +306,7 @@ export default function DayPage() {
               {/* 4 · Frame */}
               <Card visible={step >= 4} delayMs={180}>
                 <div className="bg-black/95 rounded-3xl px-5 py-6 md:p-5 shadow-xl flex flex-col items-center">
-                  <div className="text-3xl md:text-2xl font-bold mb-5 md:mb-2 text-red-200">
+                  <div className="text-4xl md:text-2xl font-bold mb-5 md:mb-2 text-red-200">
                     4ª pista · Frame clave
                   </div>
                   {cfg?.frame ? (
@@ -246,7 +316,7 @@ export default function DayPage() {
                       className="rounded-2xl shadow-2xl w-full max-w-xl md:max-w-[300px] max-h-[600px] md:max-h-[400px] object-contain border-4 md:border-2 border-red-600"
                     />
                   ) : (
-                    <div className="text-2xl md:text-xl text-gray-400">
+                    <div className="text-3xl md:text-xl text-gray-400">
                       Sube la URL del frame en config.ts
                     </div>
                   )}
@@ -282,32 +352,11 @@ export default function DayPage() {
         )}
       </div>
 
-      {/* ======== MOBILE ACTION BAR (solo móviles) ======== */}
-      {unlocked && (
-        <div className="md:hidden fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-gradient-to-t from-black/90 to-black/20 backdrop-blur border-t border-white/10">
-          <div className="flex gap-3">
-            {step < TOTAL_STEPS ? (
-              <button
-                onClick={() => setStep((s) => Math.min(TOTAL_STEPS, s + 1))}
-                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-black px-6 py-4 rounded-2xl shadow-2xl text-2xl transition-all"
-              >
-                Siguiente pista →
-              </button>
-            ) : (
-              <button
-                onClick={() => setGiveUpOpen(true)}
-                className="flex-1 bg-red-700 hover:bg-red-800 text-white font-black px-6 py-4 rounded-2xl shadow-2xl text-2xl transition-all"
-              >
-                Rendirse 😵
-              </button>
-            )}
-            <Link
-              to="/"
-              className="px-5 py-4 rounded-2xl bg-gray-800 hover:bg-gray-900 text-white font-semibold shadow-2xl text-2xl transition-all"
-              aria-label="Volver al calendario"
-            >
-              ←
-            </Link>
+      {/* ======== HINT FLOTANTE (solo móviles) ======== */}
+      {unlocked && showHint && (
+        <div className="md:hidden fixed pointer-events-none inset-x-0 bottom-4 z-40 px-4">
+          <div className="mx-auto w-max max-w-[92vw] rounded-full bg-white/10 text-white/90 text-base font-semibold px-4 py-2 shadow backdrop-blur border border-white/15 animate-pulse">
+            Desliza <span className="mx-1">a la izquierda</span> para la siguiente pista
           </div>
         </div>
       )}
@@ -324,10 +373,10 @@ export default function DayPage() {
               ×
             </button>
             <div className="flex flex-col items-center gap-10 mt-10 md:mt-6">
-              <div className="text-5xl md:text-3xl font-black text-purple-300 mb-2">
+              <div className="text-6xl md:text-3xl font-black text-purple-300 mb-2">
                 Solución
               </div>
-              <div className="text-3xl md:text-2xl font-semibold text-center mb-2">
+              <div className="text-4xl md:text-2xl font-semibold text-center mb-2">
                 {cfg?.finalTitle ?? Title}
               </div>
               {cfg?.finalImage && (
@@ -337,7 +386,7 @@ export default function DayPage() {
                   className="rounded-2xl shadow-lg max-h-[600px] md:max-h-[400px] mb-7"
                 />
               )}
-              <div className="text-2xl md:text-xl text-gray-200 text-center mb-6 whitespace-pre-line px-2">
+              <div className="text-3xl md:text-xl text-gray-200 text-center mb-6 whitespace-pre-line px-2">
                 {cfg?.synopsis?.trim()
                   ? cfg.synopsis
                   : "Sinopsis no disponible. Añádela en config.ts"}
