@@ -1,4 +1,5 @@
 // src/components/DayPage.tsx
+
 import { Link, useParams } from "react-router-dom";
 import { CONFIG } from "@/data/config";
 import { isUnlockedDevAware, nowMadrid } from "@/lib/time";
@@ -7,14 +8,14 @@ import clsx from "clsx";
 
 type DayConfig = {
   title?: string;
-  emojis?: string;     // pista 1
-  actors?: string[];   // pista 2
-  poster?: string;     // pista 3 (blur fuerte)
-  frame?: string;      // pista 4 (frame clave)
+  emojis?: string; // pista 1
+  actors?: string[]; // pista 2
+  poster?: string; // pista 3 (blur fuerte)
+  frame?: string; // pista 4 (frame clave)
   finalTitle?: string; // solución
   finalImage?: string; // imagen solución
-  synopsis?: string;   // overlay “Rendirse”
-  animated?: boolean;  // si true, añade “(doblaje)” a actores
+  synopsis?: string; // overlay “Rendirse”
+  animated?: boolean; // si true, añade “(doblaje)” a actores
 };
 
 const TOTAL_STEPS = 4;
@@ -23,269 +24,234 @@ export default function DayPage() {
   const params = useParams();
   const day = Number(params.day);
   const cfg: DayConfig | undefined = (CONFIG.days as any)[day];
-
   const unlocked = useMemo(
     () => isUnlockedDevAware(day, CONFIG.year, CONFIG.month),
     [day]
   );
-
-  // Progreso SIEMPRE reseteado al entrar
-  const [step, setStep] = useState<number>(1);
-  const [giveUpOpen, setGiveUpOpen] = useState<boolean>(false);
+  const [step, setStep] = useState(1);
+  const [giveUpOpen, setGiveUpOpen] = useState(false);
 
   if (!Number.isInteger(day) || day < 1 || day > 31) {
     return (
-      <div className="max-w-grid mx-auto px-4 py-10">
-        <h1 className="text-2xl font-extrabold">Día no válido</h1>
-        <p className="text-muted">La ruta no corresponde a un día de octubre.</p>
-        <Link className="inline-block mt-4 px-3 py-2 rounded-xl border border-white/15 hover:shadow-ring" to="/">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-5">
+        <div className="text-3xl text-red-300 font-bold">Día no válido</div>
+        <div className="text-gray-400">
+          La ruta no corresponde a un día de octubre.
+        </div>
+        <Link
+          to="/"
+          className="inline-block px-4 py-2 mt-4 bg-purple-900 rounded-lg text-white shadow hover:bg-purple-700 transition"
+        >
           ← Volver al calendario
         </Link>
       </div>
     );
   }
 
-  const monthName = [
-    "enero","febrero","marzo","abril","mayo","junio",
-    "julio","agosto","septiembre","octubre","noviembre","diciembre"
-  ][CONFIG.month];
   const Title = cfg?.title ?? `Noche ${day}`;
-
   const today = nowMadrid();
   const isToday =
-    today.y === CONFIG.year && today.m === CONFIG.month + 1 && today.d === day;
+    today.y === CONFIG.year &&
+    today.m === CONFIG.month + 1 &&
+    today.d === day;
 
-  const onNext = () => setStep((s) => Math.min(TOTAL_STEPS, s + 1));
-  const onGiveUp = () => setGiveUpOpen(true);
-  const onCloseGiveUp = () => setGiveUpOpen(false);
-
-  // Tarjeta con animación y estilos; importante: display:block para columnas
-  const Card: React.FC<{
+  const Card = ({
+    visible,
+    delayMs,
+    children,
+    className = "",
+  }: {
     visible: boolean;
     delayMs: number;
     children: React.ReactNode;
     className?: string;
-  }> = ({ visible, delayMs, children, className }) => (
-    <section
+  }) => (
+    <div
       className={clsx(
-        "block break-inside-avoid rounded-2xl border bg-white/[.04] border-white/10 overflow-hidden",
-        "transition-all duration-500",
-        visible
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 translate-y-3 scale-[.98]",
+        "transition-all duration-500 ease-in-out opacity-0 translate-y-4",
+        visible && "opacity-100 translate-y-0",
         className
       )}
-      style={
-        visible
-          ? { animation: "cardIn .45s ease-out both", animationDelay: `${delayMs}ms` }
-          : undefined
-      }
+      style={{
+        transitionDelay: visible ? `${delayMs}ms` : "0ms",
+        pointerEvents: visible ? undefined : "none",
+      }}
     >
-      <div className="p-3">{children}</div>
-    </section>
+      {children}
+    </div>
   );
 
   return (
-    <div className="max-w-grid mx-auto px-4 py-8">
-      <header className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-[42px] h-[42px] rounded-xl grid place-items-center bg-[conic-gradient(from_210deg,rgba(255,107,0,.25),rgba(124,58,237,.25))] shadow-ring">
-            <span className="font-display text-2xl">🎃</span>
-          </div>
-          <div>
-            <h1 className="m-0 font-extrabold tracking-tight text-[clamp(20px,2.4vw,28px)]">
-              Pistas — {day} de {monthName} {CONFIG.year}
-            </h1>
-            <div className="text-muted text-sm">
-              {unlocked
-                ? (isToday ? "¡Hoy es el día, suerte adivinando!" : "Día ya desbloqueado.")
-                : "Este día aún está bloqueado. Vuelve cuando se desbloquee."}
-            </div>
-          </div>
-        </div>
+    <div className="max-w-xl mx-auto my-10 bg-black/80 backdrop-blur-lg rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+      {/* Cabecera SOLO con número de noche */}
+      <div className="flex items-center gap-4 mb-6">
+        <span className={clsx(
+          "text-3xl font-black tracking-wide text-purple-300 drop-shadow",
+          isToday && "animate-pulse"
+        )}>
+          Noche {day}
+        </span>
+      </div>
 
-        <div className="flex gap-2 flex-wrap">
+      {/* Stepper visual */}
+      <div className="flex justify-center items-center gap-2 mb-7">
+        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+          <div
+            key={i}
+            className={clsx(
+              "w-6 h-2 rounded-full transition-all duration-300",
+              i < step
+                ? "bg-orange-400 shadow-md scale-110"
+                : "bg-gray-700/60"
+            )}
+          />
+        ))}
+      </div>
+
+      {/* Bloqueado */}
+      {!unlocked && (
+        <div className="flex flex-col items-center py-16">
+          <span className="text-5xl text-gray-600 mb-3">🔒</span>
+          <div className="text-lg text-white mb-2 font-semibold">
+            Bloqueado
+          </div>
+          <p className="text-gray-400 text-center">Las pistas de este día estarán disponibles automáticamente a la hora programada.</p>
           <Link
             to="/"
-            className="px-3 py-2 rounded-xl border border-white/20 hover:shadow-ring transition font-semibold"
+            className="inline-block mt-7 px-4 py-2 bg-purple-900 rounded-lg text-white shadow hover:bg-purple-700 transition"
           >
-            ← Volver
+            ← Volver al calendario
           </Link>
-        </div>
-      </header>
-
-      {/* BLOQUEADO: sin pistas ni rendirse */}
-      {!unlocked && (
-        <div className="p-4 rounded-2xl border bg-white/[.04] border-white/10 mb-2">
-          <div className="flex items-center gap-2 text-sm font-semibold mb-1">
-            <span className="text-ink/90">🔒 Bloqueado</span>
-          </div>
-          <p className="text-sm text-muted m-0">
-            Las pistas de este día estarán disponibles automáticamente a la hora programada.
-          </p>
         </div>
       )}
 
-      {/* DESBLOQUEADO */}
+      {/* Desbloqueado: Pistas y acciones */}
       {unlocked && (
         <>
-          {/* Barra de acciones y progreso ARRIBA */}
-          <div className={clsx("mb-3 flex items-center justify-between gap-3", giveUpOpen && "blur-[2px]")}>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: TOTAL_STEPS }).map((_, i) => {
-                const active = i < step;
-                return (
-                  <div
-                    key={i}
-                    className={clsx(
-                      "h-2 rounded-full transition-all",
-                      active ? "bg-good w-10" : "bg-white/10 w-6"
-                    )}
-                  />
-                );
-              })}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {step < TOTAL_STEPS ? (
-                <button
-                  onClick={onNext}
-                  className="px-3 py-2 rounded-xl border border-accent/40 bg-[rgba(255,107,0,.12)] hover:shadow-ring transition font-semibold"
-                >
-                  Siguiente pista →
-                </button>
-              ) : (
-                <button
-                  onClick={onGiveUp}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/[.05] hover:shadow-ring transition font-semibold"
-                >
-                  Rendirse 😵
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Masonry con CSS columns:
-              - cada tarjeta es "break-inside-avoid" para no cortarse
-              - columnas se adaptan a ancho; alturas independientes por item
-          */}
-          <div
-            className={clsx(
-              giveUpOpen && "blur-[4px]",
-              "columns-1 sm:columns-2 lg:columns-3 gap-4"
-            )}
-          >
+          <div className={clsx(
+            "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+          )}>
             {/* 1 · Emojis */}
             <Card visible={step >= 1} delayMs={0}>
-              <h3 className="m-0 text-xs font-bold text-muted mb-2">1ª pista · Emojis</h3>
-              <div className="text-3xl md:text-4xl leading-none">{cfg?.emojis ?? "❓"}</div>
+              <div className="bg-gradient-to-br from-purple-900/70 to-black/70 rounded-xl p-5 flex flex-col items-center shadow-lg h-full">
+                <div className="text-6xl drop-shadow-lg mb-3">{cfg?.emojis ?? "❓"}</div>
+                <div className="text-sm text-purple-200">1ª pista · Emojis</div>
+              </div>
             </Card>
 
             {/* 2 · Actores */}
             <Card visible={step >= 2} delayMs={80}>
-              <h3 className="m-0 text-xs font-bold text-muted mb-2">2ª pista · Actores</h3>
-              <div className="flex flex-wrap gap-2">
-                {Array.isArray(cfg?.actors) && cfg!.actors.length > 0 ? (
-                  cfg!.actors.map((a, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-1 rounded-lg border border-white/15 bg-white/5 text-sm"
-                    >
-                      {cfg?.animated ? `${a} (doblaje)` : a}
-                    </span>
-                  ))
+              <div className="bg-gradient-to-br from-orange-900/80 to-black/90 rounded-xl p-5 shadow-lg h-full">
+                <div className="text-md font-semibold mb-2 text-orange-200">2ª pista · Actores</div>
+                {Array.isArray(cfg?.actors) && cfg.actors.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {cfg.actors.map((a, i) => (
+                      <span
+                        key={i}
+                        className="bg-purple-700 text-white rounded-full px-3 py-1 text-xs shadow"
+                      >
+                        {cfg?.animated ? `${a} (doblaje)` : a}
+                      </span>
+                    ))}
+                  </div>
                 ) : (
-                  <span className="text-sm text-muted">(Añade actores en config.ts)</span>
+                  <div className="text-gray-400">Sin actores registrados</div>
                 )}
               </div>
             </Card>
 
-            {/* 3 · Póster (blur fuerte + tope de altura para que no desborde) */}
+            {/* 3 · Póster */}
             <Card visible={step >= 3} delayMs={120}>
-              <h3 className="m-0 text-xs font-bold text-muted mb-2">3ª pista · Póster</h3>
-              {cfg?.poster ? (
-                <img
-                  src={cfg.poster}
-                  alt="Póster"
-                  className={clsx(
-                    "rounded-xl border border-white/10 w-full h-auto",
-                    "blur-[14px] brightness-75 select-none pointer-events-none",
-                    "max-h-[420px] object-contain"
-                  )}
-                  loading="lazy"
-                />
-              ) : (
-                <div className="rounded-xl border border-dashed border-white/15 w-full min-h-[160px] grid place-items-center text-muted">
-                  Sube la URL del póster en config.ts
+              <div className="bg-black/85 rounded-xl p-5 shadow-lg flex flex-col items-center h-full">
+                <div className="text-md font-semibold mb-2 text-purple-300">
+                  3ª pista · Póster
                 </div>
-              )}
+                {cfg?.poster ? (
+                  <img
+                    src={cfg.poster}
+                    alt="Póster"
+                    className="rounded-lg shadow-xl w-auto max-h-64 object-contain border-2 border-purple-800 filter blur"
+                  />
+                ) : (
+                  <div className="text-gray-400">Sube la URL del póster en config.ts</div>
+                )}
+              </div>
             </Card>
 
-            {/* 4 · Frame (independiente con su propio tope de altura) */}
+            {/* 4 · Frame */}
             <Card visible={step >= 4} delayMs={160}>
-              <h3 className="m-0 text-xs font-bold text-muted mb-2">4ª pista · Frame clave</h3>
-              {cfg?.frame ? (
-                <img
-                  src={cfg.frame}
-                  alt="Frame clave"
-                  className="rounded-xl border border-white/10 w-full h-auto max-h-[420px] object-contain"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="rounded-xl border border-dashed border-white/15 w-full min-h-[160px] grid place-items-center text-muted">
-                  Sube la URL del frame en config.ts
-                </div>
-              )}
+              <div className="bg-black/90 rounded-xl p-5 shadow-lg flex flex-col items-center h-full">
+                <div className="text-md font-semibold mb-2 text-red-300">4ª pista · Frame clave</div>
+                {cfg?.frame ? (
+                  <img
+                    src={cfg.frame}
+                    alt="Frame clave"
+                    className="rounded-lg shadow-2xl w-auto max-h-64 object-contain border-2 border-red-800"
+                  />
+                ) : (
+                  <div className="text-gray-400">Sube la URL del frame en config.ts</div>
+                )}
+              </div>
             </Card>
           </div>
 
-          {/* Overlay “Rendirse” (solución) */}
-          {giveUpOpen && (
-            <div className="fixed inset-0 z-50 grid place-items-center" aria-modal="true" role="dialog">
-              <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-[3px]"
-                onClick={onCloseGiveUp}
-                aria-hidden
-              />
-              <div className="relative z-10 w-[min(92vw,720px)] rounded-2xl border border-white/15 bg-panel/95 shadow-ring p-4">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <h2 className="m-0 text-xl font-extrabold">Solución</h2>
-                  <button
-                    onClick={onCloseGiveUp}
-                    className="px-2 py-1 rounded-lg border border-white/15 hover:shadow-ring text-sm"
-                    aria-label="Cerrar"
-                  >
-                    ✕
-                  </button>
-                </div>
+          {/* Acciones abajo */}
+          <div className="flex gap-4 justify-end mt-8">
+            {step < TOTAL_STEPS ? (
+              <button
+                onClick={() => setStep((s) => Math.min(TOTAL_STEPS, s + 1))}
+                className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2 rounded-lg shadow transition-all text-lg"
+              >
+                Siguiente pista →
+              </button>
+            ) : (
+              <button
+                onClick={() => setGiveUpOpen(true)}
+                className="bg-red-700 hover:bg-red-800 text-white font-bold px-5 py-2 rounded-lg shadow transition-all text-lg"
+              >
+                Rendirse 😵
+              </button>
+            )}
+            <Link
+              to="/"
+              className="bg-gray-800 hover:bg-gray-900 text-white font-medium px-5 py-2 rounded-lg shadow transition-all text-lg"
+            >
+              ← Volver
+            </Link>
+          </div>
 
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="text-lg font-bold mb-2">
-                      {cfg?.finalTitle ?? Title}
-                    </div>
-                    <p className="text-sm leading-relaxed text-ink/90">
-                      {cfg?.synopsis?.trim()
-                        ? cfg.synopsis
-                        : "Sinopsis no disponible. Añádela en config.ts"}
-                    </p>
+          {/* Overlay de solución */}
+          {giveUpOpen && (
+            <div className="fixed z-30 inset-0 flex items-center justify-center bg-black/80 backdrop-blur">
+              <div className="bg-[#16111e] text-white max-w-lg w-full rounded-xl p-8 shadow-2xl relative border-2 border-purple-900">
+                <button
+                  onClick={() => setGiveUpOpen(false)}
+                  className="absolute right-4 top-4 text-xl text-gray-400 hover:text-red-300"
+                >
+                  ×
+                </button>
+                <div className="flex flex-col items-center gap-3 mt-6">
+                  <div className="text-2xl font-black text-purple-300 mb-2">
+                    Solución
+                  </div>
+                  <div className="text-lg font-semibold text-center mb-2">
+                    {cfg?.finalTitle ?? Title}
                   </div>
                   {cfg?.finalImage && (
-                    <div className="w-full md:w-56 shrink-0">
-                      <img
-                        src={cfg.finalImage}
-                        alt="Imagen final"
-                        className="rounded-xl border border-white/10 w-full"
-                        loading="lazy"
-                      />
-                    </div>
+                    <img
+                      src={cfg.finalImage}
+                      alt="Solución"
+                      className="rounded-lg shadow-lg max-h-56 mb-3"
+                    />
                   )}
-                </div>
-
-                <div className="mt-4 flex justify-end">
+                  <div className="text-sm text-gray-200 text-center mb-4 whitespace-pre-line">
+                    {cfg?.synopsis?.trim()
+                      ? cfg.synopsis
+                      : "Sinopsis no disponible. Añádela en config.ts"}
+                  </div>
                   <button
-                    onClick={onCloseGiveUp}
-                    className="px-3 py-2 rounded-xl border border-accent/40 bg-[rgba(255,107,0,.12)] hover:shadow-ring transition font-semibold"
+                    onClick={() => setGiveUpOpen(false)}
+                    className="mt-2 bg-purple-700 hover:bg-purple-800 px-5 py-2 text-white rounded-full shadow transition-all"
                   >
                     Cerrar
                   </button>
