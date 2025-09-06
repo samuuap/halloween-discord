@@ -64,7 +64,7 @@ export default function Countdown({ year, monthIndex0 }: { year: number; monthIn
     <div
       ref={rootRef}
       data-oct-counter="global"
-      className="font-bold tabular-nums bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-xs sm:text-sm"
+      className="font-bold tabular-nums bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-base sm:text-lg"
       aria-live="polite"
       title="Cuenta atrás hasta el próximo día que se abre"
     >

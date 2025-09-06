@@ -24,19 +24,19 @@ export default function Calendar() {
     <div className="max-w-grid mx-auto px-2 sm:px-3 md:px-4 pb-8" key={version}>
       {/* Header */}
       <header className="grid grid-cols-[1fr_auto] gap-3 items-start sm:items-center my-4 sm:my-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl grid place-items-center bg-[conic-gradient(from_210deg,rgba(255,107,0,.25),rgba(124,58,237,.25))] shadow-ring">
-            <span className="font-display text-xl sm:text-2xl">🎃</span>
-          </div>
-          <div>
-            <h1 className="m-0 font-extrabold tracking-tight text-[clamp(16px,5vw,28px)]">
-              Maratón de Octubre
-            </h1>
-            <div className="text-muted text-[11px] sm:text-sm">
-              Desbloqueo diario con pistas para adivinar la peli en Discord
+        <div className="flex items-center gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl grid place-items-center bg-[conic-gradient(from_210deg,rgba(255,107,0,.25),rgba(124,58,237,.25))] shadow-ring">
+              <span className="font-display text-2xl sm:text-4xl">🎃</span>
+            </div>
+            <div>
+              <h1 className="m-0 font-extrabold tracking-tight text-[clamp(22px,6vw,42px)]">
+                Maratón de Octubre
+              </h1>
+              <div className="text-muted text-sm sm:text-base">
+                Desbloqueo diario de películas de Halloween
+              </div>
             </div>
           </div>
-        </div>
 
         <div className="flex items-center gap-2 sm:gap-3 justify-end flex-wrap">
           {/* ÚNICO contador global */}
@@ -46,7 +46,7 @@ export default function Calendar() {
               href={CONFIG.discordUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2.5 sm:px-3 py-2 rounded-xl border border-accent/40 bg-[rgba(255,107,0,.12)] hover:shadow-ring transition font-semibold inline-flex items-center gap-2 text-xs sm:text-sm"
+              className="px-2.5 sm:px-3 py-2 rounded-xl border border-accent/40 bg-[rgba(255,107,0,.12)] hover:shadow-ring transition font-semibold inline-flex items-center gap-2 text-sm sm:text-base"
             >
               🕸️ Abrir Discord
             </a>

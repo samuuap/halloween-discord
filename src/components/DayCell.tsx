@@ -96,7 +96,7 @@ export default function DayCell({
       {/* Franja superior: SIEMPRE “Noche {día}” */}
       <div className="h-5 sm:h-6 md:h-7 flex items-center justify-between gap-2">
         <div
-          className="font-extrabold text-[10px] sm:text-[12px] md:text-[13px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
+          className="font-extrabold text-[10px] sm:text-[12px] md:text-[20px] leading-tight whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
           title={safeLabel}
         >
           {safeLabel}
