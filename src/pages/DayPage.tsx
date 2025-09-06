@@ -1,10 +1,12 @@
 // src/components/DayPage.tsx
 
+
 import { Link, useParams } from "react-router-dom";
 import { CONFIG } from "@/data/config";
 import { isUnlockedDevAware, nowMadrid } from "@/lib/time";
 import { useMemo, useState, useEffect, useRef } from "react";
 import clsx from "clsx";
+
 
 type DayConfig = {
   title?: string;
@@ -19,22 +21,26 @@ type DayConfig = {
   // OJO: NO requerimos 'blocked' en config.ts. Si algún día lo añades, lo respetamos dinámicamente con (cfg as any).blocked
 };
 
+
 const TOTAL_STEPS = 4;
+
 
 /** Detecta swipe izquierda/derecha en mobile sin interferir con el scroll vertical */
 function useSwipe(opts: {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
-  minDistance?: number;  // píxeles
-  maxOffAxis?: number;   // píxeles
+  minDistance?: number;
+  maxOffAxis?: number;
   maxDurationMs?: number;
 }) {
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
+
 
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
     startRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
   };
+
 
   const onTouchEnd = (e: React.TouchEvent) => {
     const s = startRef.current;
@@ -44,36 +50,46 @@ function useSwipe(opts: {
     const dy = t.clientY - s.y;
     const dt = Date.now() - s.t;
 
+
     const minDistance = opts.minDistance ?? 48;
     const maxOffAxis = opts.maxOffAxis ?? 80;
     const maxDurationMs = opts.maxDurationMs ?? 1000;
 
+
     if (Math.abs(dy) > maxOffAxis || dt > maxDurationMs) return;
+
 
     if (dx <= -minDistance) opts.onSwipeLeft?.();
     else if (dx >= minDistance) opts.onSwipeRight?.();
   };
 
+
   return { onTouchStart, onTouchEnd };
 }
+
 
 export default function DayPage() {
   const params = useParams();
   const day = Number(params.day);
   const cfg: DayConfig | undefined = (CONFIG.days as any)[day];
 
+
   const manuallyBlocked = (cfg as any)?.blocked === true;
+
 
   const unlocked = useMemo(
     () => isUnlockedDevAware(day, CONFIG.year, CONFIG.month) && !manuallyBlocked,
     [day, manuallyBlocked]
   );
 
+
   const [step, setStep] = useState(1);
   const [giveUpOpen, setGiveUpOpen] = useState(false);
 
+
   // Refs a cada tarjeta para autoscroll en móvil
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
 
   // Swipe para siguiente pista (móvil)
   const canNext = unlocked && step < TOTAL_STEPS;
@@ -88,13 +104,18 @@ export default function DayPage() {
     },
   });
 
+
   // Banner de ayuda (se oculta al cabo de unos segundos o al primer avance)
   const [showHint, setShowHint] = useState(true);
   useEffect(() => {
-    if (!canNext) { setShowHint(false); return; }
+    if (!canNext) {
+      setShowHint(false);
+      return;
+    }
     const id = setTimeout(() => setShowHint(false), 5000);
     return () => clearTimeout(id);
   }, [canNext, step]);
+
 
   // Autoscroll a la nueva tarjeta (sólo móvil)
   function isMobileViewport() {
@@ -118,6 +139,7 @@ export default function DayPage() {
     autoScrollToCard(newStep);
   }
 
+
   if (!Number.isInteger(day) || day < 1 || day > 31) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8">
@@ -135,6 +157,7 @@ export default function DayPage() {
     );
   }
 
+
   const Title = cfg?.title ?? `Noche ${day}`;
   const today = nowMadrid();
   const isToday =
@@ -142,19 +165,22 @@ export default function DayPage() {
     today.m === CONFIG.month + 1 &&
     today.d === day;
 
+
   const progressPct = Math.max(0, Math.min(100, Math.round((step / TOTAL_STEPS) * 100)));
+
 
   type CardProps = {
     visible: boolean;
     delayMs: number;
     children: React.ReactNode;
     className?: string;
-    refIndex: number;      // 0..3
+    refIndex: number; // 0..3
     isLastVisible: boolean;
     canNext: boolean;
     onNext: () => void;
     onGiveUp: () => void;
   };
+
 
   const Card = ({
     visible,
@@ -181,6 +207,7 @@ export default function DayPage() {
       }}
     >
       {children}
+
 
       {/* CTA inline justo debajo de la ÚLTIMA pista visible (solo móvil) */}
       {isLastVisible && (
@@ -213,43 +240,61 @@ export default function DayPage() {
     </div>
   );
 
+
   // ---------- AUTOSCROLL EN EL MODAL DE RESULTADO (MÓVIL) ----------
   const mobileModalScrollRef = useRef<HTMLDivElement | null>(null);
+  const infoBoxRef = useRef<HTMLDivElement | null>(null);
   const [finalImageLoaded, setFinalImageLoaded] = useState(false);
 
-  // Cuando se abre el modal en móvil, hacemos scroll automático hasta el final
-  useEffect(() => {
-    if (!giveUpOpen || !isMobileViewport()) return;
-    const el = mobileModalScrollRef.current;
-    if (!el) return;
 
-    // función que realiza el scroll automático de "tour" hacia toda la info
-    const doAutoScroll = () => {
-      // coloca al principio por si había una posición previa
-      el.scrollTo({ top: 0, behavior: "auto" });
-      // tras un pequeño delay para asegurar alturas correctas, baja suavemente hasta el final
-      setTimeout(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-      }, 200);
+  // Al abrir el modal en móvil, esperamos a que cargue la imagen (si existe) y
+  // realizamos un autoscroll para centrar el bloque de información de la película.
+  useEffect(() => {
+    // Solo actuar en vista móvil y cuando el modal está abierto.
+    if (!giveUpOpen || !isMobileViewport()) return;
+
+
+    const performScroll = () => {
+      // requestAnimationFrame asegura que el scroll se ejecute después de que el navegador haya pintado el layout.
+      // Esto es crucial para obtener las dimensiones y posiciones correctas, especialmente tras cargar una imagen.
+      requestAnimationFrame(() => {
+        const target = infoBoxRef.current;
+        if (target) {
+          // Usamos el método nativo scrollIntoView, que es más simple y robusto.
+          // 'block: "center"' intenta centrar el elemento verticalmente en el viewport.
+          // Si el elemento es más alto que el viewport, lo alinea arriba.
+          // La clase 'scroll-mt-4' en el div asegura un margen superior.
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      });
     };
 
-    // si hay imagen final, esperamos a que cargue para tener la altura real
+
+    // Si hay una imagen final, su carga cambia las dimensiones de la página.
+    // Por tanto, esperamos a que se cargue ('finalImageLoaded') para hacer el scroll.
     if (cfg?.finalImage) {
-      if (finalImageLoaded) doAutoScroll();
+      if (finalImageLoaded) {
+        performScroll();
+      }
     } else {
-      doAutoScroll();
+      // Si no hay imagen, podemos hacer el scroll directamente al abrir el modal.
+      performScroll();
     }
-  }, [giveUpOpen, finalImageLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [giveUpOpen, finalImageLoaded, cfg?.finalImage]);
+
 
   // reset flag al cerrar
   useEffect(() => {
     if (!giveUpOpen) setFinalImageLoaded(false);
   }, [giveUpOpen]);
 
+
   return (
     <div
       className={clsx(
-        // Móvil compacto (rounded none / padding reducido) · Desktop como antes
         "max-w-4xl mx-auto my-0 md:my-4 bg-black/95 backdrop-blur-md rounded-none md:rounded-[36px] px-0 md:px-4 py-0 md:py-10 shadow-2xl relative overflow-hidden",
         "md:overflow-visible"
       )}
@@ -279,6 +324,7 @@ export default function DayPage() {
         )}
       </div>
 
+
       {/* ======== HEADER (solo desktop) ======== */}
       <div className="hidden md:flex mb-10 flex-col md:flex-row items-center md:items-end md:justify-between gap-4 md:gap-8 px-4">
         <span
@@ -290,6 +336,7 @@ export default function DayPage() {
           Noche {day}
         </span>
       </div>
+
 
       {/* ======== STEPPER (solo desktop) ======== */}
       {unlocked && (
@@ -305,6 +352,7 @@ export default function DayPage() {
           ))}
         </div>
       )}
+
 
       {/* ======== CONTENIDO (captura swipe en móvil) ======== */}
       <div
@@ -335,6 +383,7 @@ export default function DayPage() {
           </div>
         )}
 
+
         {/* Desbloqueado */}
         {unlocked && (
           <>
@@ -358,6 +407,7 @@ export default function DayPage() {
                   </div>
                 </div>
               </Card>
+
 
               {/* 2 · Actores */}
               <Card
@@ -392,6 +442,7 @@ export default function DayPage() {
                 </div>
               </Card>
 
+
               {/* 3 · Póster (blur fuerte) */}
               <Card
                 visible={step >= 3}
@@ -419,6 +470,7 @@ export default function DayPage() {
                   )}
                 </div>
               </Card>
+
 
               {/* 4 · Frame */}
               <Card
@@ -449,6 +501,7 @@ export default function DayPage() {
               </Card>
             </div>
 
+
             {/* ======== ACCIONES DESKTOP ======== */}
             <div className="hidden md:flex flex-row gap-6 justify-end items-center mt-10">
               {step < TOTAL_STEPS ? (
@@ -477,6 +530,7 @@ export default function DayPage() {
         )}
       </div>
 
+
       {/* ======== HINT flotante adicional (sólo primeros segundos) ======== */}
       {unlocked && showHint && canNext && (
         <div className="md:hidden fixed pointer-events-none inset-x-0 bottom-4 z-40 px-4">
@@ -486,10 +540,11 @@ export default function DayPage() {
         </div>
       )}
 
+
       {/* ======== MODAL SOLUCIÓN ======== */}
       {giveUpOpen && (
         <>
-          {/* --- MÓVIL: SCROLL automático y recuadro morado --- */}
+          {/* --- MÓVIL: contenedor scroll + AUTOSCROLL AL BLOQUE DE INFO --- */}
           <div
             className="md:hidden fixed inset-0 z-50 bg-black/85 backdrop-blur overflow-y-auto [overscroll-behavior:contain]"
             role="dialog"
@@ -509,28 +564,32 @@ export default function DayPage() {
                 </button>
               </div>
 
-              {/* Contenido desplazable */}
-              <div className="flex-1 flex flex-col items-center text-center gap-4">
-                {cfg?.finalImage && (
-                  <img
-                    src={cfg.finalImage}
-                    alt="Solución"
-                    className="max-h-[58vh] w-auto rounded-2xl shadow-2xl object-contain"
-                    onLoad={() => setFinalImageLoaded(true)}
-                  />
-                )}
 
-                {/* Recuadro morado para título + sinopsis */}
-                <div className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl">
+              {/* Contenido desplazable y centrado */}
+              <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 py-4">
+                {/* Recuadro morado con TODO DENTRO (ANCLA del scroll) */}
+                <div
+                  ref={infoBoxRef}
+                  className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl flex flex-col items-center gap-4 scroll-mt-4"
+                >
+                  {cfg?.finalImage && (
+                    <img
+                      src={cfg.finalImage}
+                      alt="Solución"
+                      className="max-h-[50vh] w-auto rounded-2xl shadow-2xl object-contain"
+                      onLoad={() => setFinalImageLoaded(true)}
+                    />
+                  )}
                   <div className="text-2xl font-bold text-purple-200">
                     {cfg?.finalTitle ?? Title}
                   </div>
-                  <div className="mt-2 text-base text-gray-200 whitespace-pre-line">
+                  <div className="text-base text-gray-200 whitespace-pre-line">
                     {cfg?.synopsis?.trim()
                       ? cfg.synopsis
                       : "Sinopsis no disponible. Añádela en config.ts"}
                   </div>
                 </div>
+
 
                 <button
                   onClick={() => setGiveUpOpen(false)}
@@ -542,6 +601,7 @@ export default function DayPage() {
             </div>
           </div>
 
+
           {/* --- DESKTOP: tarjeta con scroll si hace falta --- */}
           <div
             className="hidden md:flex fixed z-50 inset-0 items-center justify-center bg-black/80 backdrop-blur"
@@ -549,7 +609,6 @@ export default function DayPage() {
             aria-modal="true"
           >
             <div className="bg-[#16111e] text-white max-w-2xl w-full rounded-[36px] p-0 shadow-2xl border-2 border-purple-900 mx-4">
-              {/* Contenedor con scroll */}
               <div className="max-h-[90vh] overflow-y-auto [overscroll-behavior:contain] rounded-[36px]">
                 <div className="relative p-8 text-center">
                   <button
@@ -561,18 +620,18 @@ export default function DayPage() {
                   </button>
                   <div className="flex flex-col items-center gap-6 mt-6">
                     <div className="text-3xl font-black text-purple-300">Solución</div>
-                    <div className="text-2xl font-semibold">
-                      {cfg?.finalTitle ?? Title}
-                    </div>
-                    {cfg?.finalImage && (
-                      <img
-                        src={cfg.finalImage}
-                        alt="Solución"
-                        className="rounded-2xl shadow-lg max-h-[400px] mb-4 object-contain"
-                      />
-                    )}
-                    <div className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl text-left">
-                      <div className="text-xl text-gray-200 whitespace-pre-line">
+                    <div className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-6 shadow-2xl text-center flex flex-col items-center gap-4">
+                      <div className="text-2xl font-semibold">
+                        {cfg?.finalTitle ?? Title}
+                      </div>
+                      {cfg?.finalImage && (
+                        <img
+                          src={cfg.finalImage}
+                          alt="Solución"
+                          className="rounded-2xl shadow-lg max-h-[400px] object-contain"
+                        />
+                      )}
+                      <div className="text-xl text-gray-200 whitespace-pre-line text-left">
                         {cfg?.synopsis?.trim()
                           ? cfg.synopsis
                           : "Sinopsis no disponible. Añádela en config.ts"}
