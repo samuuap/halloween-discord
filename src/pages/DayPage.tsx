@@ -25,8 +25,8 @@ const TOTAL_STEPS = 4;
 function useSwipe(opts: {
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
-  minDistance?: number;
-  maxOffAxis?: number;
+  minDistance?: number;  // píxeles
+  maxOffAxis?: number;   // píxeles
   maxDurationMs?: number;
 }) {
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -75,6 +75,31 @@ export default function DayPage() {
   // Refs a cada tarjeta para autoscroll en móvil
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Refs para scroll a tope en los modales
+  const mobileModalScrollRef = useRef<HTMLDivElement | null>(null);
+  const desktopModalScrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Al abrir el modal (Rendirse), subir ARRIBA DEL TODO (página + contenedor modal)
+  useEffect(() => {
+    if (!giveUpOpen) return;
+
+    const scrollTopAll = () => {
+      // Página
+      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch {}
+      // Modal móvil
+      const m = mobileModalScrollRef.current;
+      if (m) m.scrollTo({ top: 0, behavior: "smooth" });
+      // Modal desktop
+      const d = desktopModalScrollRef.current;
+      if (d) d.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // Varias pasadas por si el layout aún no está montado del todo
+    requestAnimationFrame(scrollTopAll);
+    setTimeout(scrollTopAll, 100);
+    setTimeout(scrollTopAll, 300);
+  }, [giveUpOpen]);
+
   // Swipe para siguiente pista (móvil)
   const canNext = unlocked && step < TOTAL_STEPS;
   const swipe = useSwipe({
@@ -91,10 +116,7 @@ export default function DayPage() {
   // Banner de ayuda (se oculta al cabo de unos segundos o al primer avance)
   const [showHint, setShowHint] = useState(true);
   useEffect(() => {
-    if (!canNext) {
-      setShowHint(false);
-      return;
-    }
+    if (!canNext) { setShowHint(false); return; }
     const id = setTimeout(() => setShowHint(false), 5000);
     return () => clearTimeout(id);
   }, [canNext, step]);
@@ -108,9 +130,7 @@ export default function DayPage() {
     if (!isMobileViewport()) return;
     requestAnimationFrame(() => {
       const el = cardRefs.current[targetStep - 1];
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
-      }
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
     });
   }
   function revealNextByButton() {
@@ -124,7 +144,7 @@ export default function DayPage() {
   if (!Number.isInteger(day) || day < 1 || day > 31) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8">
-        <div className="text-5xl text-red-300 font-bold font-display">Día no válido</div>
+        <div className="text-5xl text-red-300 font-bold">Día no válido</div>
         <div className="text-2xl text-gray-400">
           La ruta no corresponde a un día de octubre.
         </div>
@@ -147,12 +167,13 @@ export default function DayPage() {
 
   const progressPct = Math.max(0, Math.min(100, Math.round((step / TOTAL_STEPS) * 100)));
 
+  // ---------- Card genérica ----------
   type CardProps = {
     visible: boolean;
     delayMs: number;
     children: React.ReactNode;
     className?: string;
-    refIndex: number; // 0..3
+    refIndex: number;      // 0..3
     isLastVisible: boolean;
     canNext: boolean;
     onNext: () => void;
@@ -173,7 +194,6 @@ export default function DayPage() {
     <div
       ref={(el) => (cardRefs.current[refIndex] = el)}
       className={clsx(
-        // scroll-mt compensa la barra superior sticky en móvil
         "scroll-mt-[88px] md:scroll-mt-0 transition-all duration-500 ease-in-out opacity-0 translate-y-6",
         visible && "opacity-100 translate-y-0",
         className
@@ -196,7 +216,7 @@ export default function DayPage() {
               </div>
               <button
                 onClick={onNext}
-                className="shrink-0 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold shadow font-display tracking-wide"
+                className="shrink-0 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold shadow"
               >
                 Nueva pista →
               </button>
@@ -205,7 +225,7 @@ export default function DayPage() {
             <div className="ml-auto">
               <button
                 onClick={onGiveUp}
-                className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-sm font-bold shadow font-display tracking-wide"
+                className="px-3 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-sm font-bold shadow"
               >
                 Rendirse 😵
               </button>
@@ -215,58 +235,6 @@ export default function DayPage() {
       )}
     </div>
   );
-
-  // ---------- AUTOSCROLL EN EL MODAL DE RESULTADO (MÓVIL) ----------
-  const mobileModalScrollRef = useRef<HTMLDivElement | null>(null);
-  const infoBoxRef = useRef<HTMLDivElement | null>(null);
-  const [finalImageLoaded, setFinalImageLoaded] = useState(false);
-
-  // Calcula y desplaza el modal para que el recuadro morado quede totalmente visible
-  function scrollInfoIntoView() {
-    const cont = mobileModalScrollRef.current;
-    const target = infoBoxRef.current;
-    if (!cont || !target) return;
-
-    // Posiciones relativas del target dentro del contenedor
-    const contRect = cont.getBoundingClientRect();
-    const targRect = target.getBoundingClientRect();
-    const current = cont.scrollTop;
-
-    const relTop = targRect.top - contRect.top + current;
-    const targetHeight = targRect.height;
-    const viewport = cont.clientHeight;
-    const margin = 16; // separaciones superiores/inferiores
-
-    // Si cabe entero, centramos; si no, lo pegamos arriba con margen
-    let top =
-      targetHeight < viewport - margin * 2
-        ? relTop - (viewport - targetHeight) / 2
-        : relTop - margin;
-
-    // Clamps para no salirnos de los límites de scroll
-    top = Math.max(0, Math.min(top, cont.scrollHeight - viewport));
-
-    // Pequeño delay para asegurar layout estable
-    setTimeout(() => {
-      cont.scrollTo({ top, behavior: "smooth" });
-    }, 120);
-  }
-
-  // Al abrir el modal en móvil, esperamos a que cargue la imagen (si existe) y desplazamos
-  useEffect(() => {
-    if (!giveUpOpen || !isMobileViewport()) return;
-    if (cfg?.finalImage) {
-      if (finalImageLoaded) scrollInfoIntoView();
-    } else {
-      scrollInfoIntoView();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [giveUpOpen, finalImageLoaded]);
-
-  // reset flag al cerrar
-  useEffect(() => {
-    if (!giveUpOpen) setFinalImageLoaded(false);
-  }, [giveUpOpen]);
 
   return (
     <div
@@ -285,7 +253,7 @@ export default function DayPage() {
           >
             ←
           </Link>
-          <div className="text-xl font-extrabold tracking-tight text-purple-200 font-display">
+          <div className="text-xl font-extrabold tracking-tight text-purple-200">
             Noche {day}
           </div>
           <div className="w-6" />
@@ -304,7 +272,7 @@ export default function DayPage() {
       <div className="hidden md:flex mb-10 flex-col md:flex-row items-center md:items-end md:justify-between gap-4 md:gap-8 px-4">
         <span
           className={clsx(
-            "text-6xl md:text-3xl font-black tracking-wide text-purple-200 drop-shadow font-display",
+            "text-6xl md:text-3xl font-black tracking-wide text-purple-200 drop-shadow",
             isToday && "animate-pulse"
           )}
         >
@@ -339,7 +307,7 @@ export default function DayPage() {
         {!unlocked && (
           <div className="flex flex-col items-center py-16 md:py-24 gap-4 md:gap-6">
             <span className="text-6xl md:text-8xl text-gray-600 mb-1 md:mb-3">🔒</span>
-            <div className="text-2xl md:text-3xl text-white mb-1 font-bold font-display">
+            <div className="text-2xl md:text-3xl text-white mb-1 font-bold">
               {manuallyBlocked ? "Bloqueado por el administrador" : "Bloqueado"}
             </div>
             <p className="text-lg md:text-2xl text-gray-300 text-center px-2">
@@ -374,7 +342,7 @@ export default function DayPage() {
                   <div className="text-[3.5rem] md:text-7xl drop-shadow-lg mb-3 md:mb-4">
                     {cfg?.emojis ?? "❓"}
                   </div>
-                  <div className="mt-1 text-2xl md:text-2xl text-purple-100 font-bold font-display">
+                  <div className="mt-1 text-2xl md:text-2xl text-purple-100 font-bold">
                     1ª pista · Emojis
                   </div>
                 </div>
@@ -391,7 +359,7 @@ export default function DayPage() {
                 onGiveUp={() => setGiveUpOpen(true)}
               >
                 <div className="bg-gradient-to-br from-orange-800/80 to-black/80 rounded-3xl px-4 py-5 md:p-5 shadow-xl flex flex-col items-center">
-                  <div className="text-2xl md:text-2xl font-bold mb-3 md:mb-4 text-orange-100 font-display">
+                  <div className="text-2xl md:text-2xl font-bold mb-3 md:mb-4 text-orange-100">
                     2ª pista · Actores
                   </div>
                   {Array.isArray(cfg?.actors) && cfg.actors.length ? (
@@ -424,7 +392,7 @@ export default function DayPage() {
                 onGiveUp={() => setGiveUpOpen(true)}
               >
                 <div className="bg-black/90 rounded-3xl px-4 py-5 md:p-5 shadow-xl flex flex-col items-center">
-                  <div className="text-2xl md:text-2xl font-bold mb-3 md:mb-2 text-purple-200 font-display">
+                  <div className="text-2xl md:text-2xl font-bold mb-3 md:mb-2 text-purple-200">
                     3ª pista · Póster
                   </div>
                   {cfg?.poster ? (
@@ -452,7 +420,7 @@ export default function DayPage() {
                 onGiveUp={() => setGiveUpOpen(true)}
               >
                 <div className="bg-black/95 rounded-3xl px-4 py-5 md:p-5 shadow-xl flex flex-col items-center">
-                  <div className="text-2xl md:text-2xl font-bold mb-3 md:mb-2 text-red-200 font-display">
+                  <div className="text-2xl md:text-2xl font-bold mb-3 md:mb-2 text-red-200">
                     4ª pista · Frame clave
                   </div>
                   {cfg?.frame ? (
@@ -475,14 +443,14 @@ export default function DayPage() {
               {step < TOTAL_STEPS ? (
                 <button
                   onClick={() => setStep((s) => Math.min(TOTAL_STEPS, s + 1))}
-                  className="bg-orange-600 hover:bg-orange-700 text-white font-black px-5 py-2 rounded-3xl shadow-2xl text-lg transition-all font-display tracking-wide"
+                  className="bg-orange-600 hover:bg-orange-700 text-white font-black px-5 py-2 rounded-3xl shadow-2xl text-lg transition-all"
                 >
                   Siguiente pista →
                 </button>
               ) : (
                 <button
                   onClick={() => setGiveUpOpen(true)}
-                  className="bg-red-700 hover:bg-red-800 text-white font-black px-5 py-2 rounded-3xl shadow-2xl text-lg transition-all font-display tracking-wide"
+                  className="bg-red-700 hover:bg-red-800 text-white font-black px-5 py-2 rounded-3xl shadow-2xl text-lg transition-all"
                 >
                   Rendirse 😵
                 </button>
@@ -501,7 +469,7 @@ export default function DayPage() {
       {/* ======== HINT flotante adicional (sólo primeros segundos) ======== */}
       {unlocked && showHint && canNext && (
         <div className="md:hidden fixed pointer-events-none inset-x-0 bottom-4 z-40 px-4">
-          <div className="mx-auto w-max max-w-[92vw] rounded-full bg-white/10 text-white/90 text-sm font-semibold px-3 py-2 shadow backdrop-blur border border-white/15 animate-pulse font-display tracking-wide">
+          <div className="mx-auto w-max max-w-[92vw] rounded-full bg-white/10 text-white/90 text-sm font-semibold px-3 py-2 shadow backdrop-blur border border-white/15 animate-pulse">
             Desliza a la izquierda o pulsa “Nueva pista”
           </div>
         </div>
@@ -510,7 +478,7 @@ export default function DayPage() {
       {/* ======== MODAL SOLUCIÓN ======== */}
       {giveUpOpen && (
         <>
-          {/* --- MÓVIL: contenedor scroll + AUTOSCROLL AL BLOQUE DE INFO --- */}
+          {/* --- MÓVIL: modal con scroll a tope arriba --- */}
           <div
             className="md:hidden fixed inset-0 z-50 bg-black/85 backdrop-blur overflow-y-auto [overscroll-behavior:contain]"
             role="dialog"
@@ -530,50 +498,47 @@ export default function DayPage() {
                 </button>
               </div>
 
-              {/* Contenido desplazable */}
-              <div className="flex-1 flex flex-col items-center text-center gap-4">
+              {/* Cuadro morado con Título + Imagen final + Sinopsis */}
+              <div className="mx-auto w-full max-w-[720px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl text-center">
+                <div className="text-2xl font-bold text-purple-200">
+                  {cfg?.finalTitle ?? Title}
+                </div>
+
                 {cfg?.finalImage && (
                   <img
                     src={cfg.finalImage}
-                    alt="Solución"
-                    className="max-h-[58vh] w-auto rounded-2xl shadow-2xl object-contain"
-                    onLoad={() => setFinalImageLoaded(true)}
+                    alt="Película"
+                    className="mt-3 max-h-[56vh] w-auto mx-auto rounded-2xl shadow-2xl object-contain"
                   />
                 )}
 
-                {/* Recuadro morado con título + sinopsis (ANCLA del scroll) */}
-                <div
-                  ref={infoBoxRef}
-                  className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl"
-                >
-                  <div className="text-2xl font-bold text-purple-200 font-display">
-                    {cfg?.finalTitle ?? Title}
-                  </div>
-                  <div className="mt-2 text-base text-gray-200 whitespace-pre-line">
-                    {cfg?.synopsis?.trim()
-                      ? cfg.synopsis
-                      : "Sinopsis no disponible. Añádela en config.ts"}
-                  </div>
+                <div className="mt-3 text-base text-gray-200 whitespace-pre-line">
+                  {cfg?.synopsis?.trim()
+                    ? cfg.synopsis
+                    : "Sinopsis no disponible. Añádela en config.ts"}
                 </div>
-
-                <button
-                  onClick={() => setGiveUpOpen(false)}
-                  className="mt-2 bg-purple-700 hover:bg-purple-800 px-6 py-2 text-white rounded-full shadow-lg text-base font-bold font-display tracking-wide"
-                >
-                  Cerrar
-                </button>
               </div>
+
+              <button
+                onClick={() => setGiveUpOpen(false)}
+                className="mt-3 mx-auto bg-purple-700 hover:bg-purple-800 px-6 py-2 text-white rounded-full shadow-lg text-base font-bold"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
 
-          {/* --- DESKTOP: tarjeta con scroll si hace falta --- */}
+          {/* --- DESKTOP: tarjeta con scroll a tope arriba --- */}
           <div
             className="hidden md:flex fixed z-50 inset-0 items-center justify-center bg-black/80 backdrop-blur"
             role="dialog"
             aria-modal="true"
           >
             <div className="bg-[#16111e] text-white max-w-2xl w-full rounded-[36px] p-0 shadow-2xl border-2 border-purple-900 mx-4">
-              <div className="max-h-[90vh] overflow-y-auto [overscroll-behavior:contain] rounded-[36px]">
+              <div
+                className="max-h-[90vh] overflow-y-auto [overscroll-behavior:contain] rounded-[36px]"
+                ref={desktopModalScrollRef}
+              >
                 <div className="relative p-8 text-center">
                   <button
                     onClick={() => setGiveUpOpen(false)}
@@ -582,18 +547,21 @@ export default function DayPage() {
                   >
                     ×
                   </button>
+
                   <div className="flex flex-col items-center gap-6 mt-6">
-                    <div className="text-3xl font-black text-purple-300 font-display">Solución</div>
-                    <div className="text-2xl font-semibold font-display">
+                    <div className="text-3xl font-black text-purple-300">Solución</div>
+                    <div className="text-2xl font-semibold">
                       {cfg?.finalTitle ?? Title}
                     </div>
+
                     {cfg?.finalImage && (
                       <img
                         src={cfg.finalImage}
-                        alt="Solución"
-                        className="rounded-2xl shadow-lg max-h-[400px] mb-4 object-contain"
+                        alt="Película"
+                        className="rounded-2xl shadow-lg max-h-[400px] mb-2 object-contain"
                       />
                     )}
+
                     <div className="w-full max-w-[680px] rounded-3xl bg-gradient-to-b from-purple-900/40 to-purple-800/20 border border-purple-800/60 p-4 shadow-2xl text-left">
                       <div className="text-xl text-gray-200 whitespace-pre-line">
                         {cfg?.synopsis?.trim()
@@ -601,9 +569,10 @@ export default function DayPage() {
                           : "Sinopsis no disponible. Añádela en config.ts"}
                       </div>
                     </div>
+
                     <button
                       onClick={() => setGiveUpOpen(false)}
-                      className="mt-1 bg-purple-700 hover:bg-purple-800 px-5 py-2 text-white rounded-full shadow-lg text-base font-bold font-display tracking-wide"
+                      className="mt-1 bg-purple-700 hover:bg-purple-800 px-5 py-2 text-white rounded-full shadow-lg text-base font-bold"
                     >
                       Cerrar
                     </button>
