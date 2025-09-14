@@ -19,17 +19,11 @@ export default function Countdown({ year, monthIndex0 }: { year: number; monthIn
     const el = rootRef.current;
     if (!el) return;
 
-    // Nota: en el primer render ya existen todos los nodos en el DOM (layout effect).
     const nodes = Array.from(
       document.querySelectorAll<HTMLDivElement>('[data-oct-counter="global"]')
     );
 
-    // Si este es el primero por orden de documento => visible
-    if (nodes.length > 0 && nodes[0] === el) {
-      setVisible(true);
-    } else {
-      setVisible(false);
-    }
+    setVisible(nodes.length > 0 && nodes[0] === el);
   }, []);
 
   useEffect(() => {
@@ -43,10 +37,14 @@ export default function Countdown({ year, monthIndex0 }: { year: number; monthIn
       }
       const ms = Math.max(0, next.msRemaining);
       const totalSec = Math.floor(ms / 1000);
-      const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+
+      const dias = Math.floor(totalSec / 86400);
+      const h = String(Math.floor((totalSec % 86400) / 3600)).padStart(2, "0");
       const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
       const s = String(totalSec % 60).padStart(2, "0");
-      setText(`Siguiente desbloqueo (día ${next.day}) en ${h}:${m}:${s}`);
+
+      const diasTxt = dias > 0 ? `${dias} ${dias === 1 ? "día" : "días"} ` : "";
+      setText(`Siguiente desbloqueo (día ${next.day}) en ${diasTxt}${h}:${m}:${s}`);
     };
 
     tick();
@@ -55,8 +53,6 @@ export default function Countdown({ year, monthIndex0 }: { year: number; monthIn
   }, [visible, year, monthIndex0]);
 
   if (!visible) {
-    // Importante: el nodo debe existir para poder formar parte del "orden del documento".
-    // Devolvemos un div vacío con display:none para participar en el layoutEffect anterior.
     return <div ref={rootRef} data-oct-counter="global" style={{ display: "none" }} />;
   }
 
