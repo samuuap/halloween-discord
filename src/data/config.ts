@@ -1,18 +1,18 @@
 // src/data/config.ts
 export type DayEntry = {
   title?: string;
-  emojis?: string;      // 1ª pista (emojis)
-  actors?: string[];    // 2ª pista (principales)
-  poster?: string;      // 3ª pista (imagen; se ve con blur si está bloqueado)
-  frame?: string;       // 4ª pista (imagen; se ve con blur si está bloqueado)
-  finalTitle?: string;  // nombre final
-  finalImage?: string;  // imagen final
-  synopsis?: string;    // se muestra en el overlay de “Rendirse”
+  emojis?: string;
+  actors?: string[];
+  poster?: string;
+  frame?: string;
+  finalTitle?: string;
+  finalImage?: string;
+  synopsis?: string;
 };
 
 export const CONFIG: {
   year: number;
-  month: number; // 0=enero … 9=octubre
+  month: number;
   discordUrl?: string;
   days: Record<number, DayEntry>;
 } = {
@@ -30,7 +30,7 @@ export const CONFIG: {
       finalTitle: "Coraline (2009)",
       finalImage: "/final/coraline.jpg",
       synopsis:
-        "Una niña curiosa descubre una puerta secreta a un mundo paralelo ideal, pero pronto revela su lado siniestro con la manipuladora 'Otra Madre'. Una fábula animada en stop-motion llena de fantasía oscura y lecciones sobre el hogar."
+        "Una niña curiosa descubre una puerta secreta a un mundo paralelo ideal, pero pronto revela su lado siniestro con la manipuladora 'Otra Madre'."
     },
     2: {
       title: "Get Out (2017)",
@@ -41,7 +41,7 @@ export const CONFIG: {
       finalTitle: "Get Out (2017)",
       finalImage: "/final/getout.jpg",
       synopsis:
-        "Un joven afroamericano visita a la familia de su novia blanca y desentierra un complot perturbador que combina hipnosis, racismo y control mental. Un thriller ingenioso que critica la sociedad con giros impactantes y humor negro."
+        "Un joven visita a la familia de su novia y descubre un complot perturbador que mezcla hipnosis y racismo."
     },
     3: {
       title: "Terrifier 3 (2024)",
@@ -52,10 +52,10 @@ export const CONFIG: {
       finalTitle: "Terrifier 3 (2024)",
       finalImage: "/final/terrifier3.jpg",
       synopsis:
-        "Art the Clown siembra el terror en Navidad con asesinatos brutales y creativos, persiguiendo a supervivientes en un caos sangriento. Un slasher extremo que eleva el gore y el sadismo a niveles festivos e inolvidables."
+        "Art the Clown aterroriza la Navidad con asesinatos brutales y creativos en este slasher extremo."
     },
     4: {
-      title: "Pesadilla en Elm Street (1984)",
+      title: "A Nightmare on Elm Street (1984)",
       emojis: "🧤🔥🛌💤",
       actors: ["Robert Englund", "Heather Langenkamp", "Johnny Depp"],
       poster: "/posters/elm-street-1984.jpg",
@@ -63,18 +63,18 @@ export const CONFIG: {
       finalTitle: "A Nightmare on Elm Street (1984)",
       finalImage: "/final/elmstreet.jpg",
       synopsis:
-        "Freddy Krueger, un asesino quemado vivo, regresa para cazar a adolescentes en sus pesadillas, donde la muerte es real. Un clásico slasher sobrenatural que transforma el sueño en una trampa mortal llena de terror innovador."
+        "Freddy Krueger regresa para cazar adolescentes en sus pesadillas, donde la muerte es real."
     },
     5: {
-      title: "World War Z (2013)",
-      emojis: "🧟🌍✈️🧳",
-      actors: ["Brad Pitt", "Mireille Enos", "Daniella Kertesz"],
-      poster: "/posters/world-war-z-2013.jpg",
-      frame: "/frames/wwz-wall.jpg",
-      finalTitle: "World War Z (2013)",
-      finalImage: "/final/wwz.jpg",
+      title: "Ghostbusters: Afterlife (2021)",
+      emojis: "👻🚗⚡🏚️",
+      actors: ["Mckenna Grace", "Finn Wolfhard", "Paul Rudd"],
+      poster: "/posters/ghostbusters-afterlife-2021.jpg",
+      frame: "/frames/ghostbusters-afterlife.jpg",
+      finalTitle: "Ghostbusters: Afterlife (2021)",
+      finalImage: "/final/ghostbusters-afterlife.jpg",
       synopsis:
-        "Una plaga zombi global obliga a un exinvestigador de la ONU a viajar por el mundo en busca de una cura, enfrentando hordas veloces y caóticas. Una épica de supervivencia con acción intensa y escala apocalíptica."
+        "Un grupo de niños descubre la conexión de su familia con los Cazafantasmas originales en un pequeño pueblo."
     },
     6: {
       title: "The Conjuring (2013)",
@@ -85,18 +85,18 @@ export const CONFIG: {
       finalTitle: "The Conjuring (2013)",
       finalImage: "/final/conjuring.jpg",
       synopsis:
-        "Los parapsicólogos Ed y Lorraine Warren ayudan a una familia aterrorizada por entidades demoníacas en su granja embrujada. Un relato de posesión basado en hechos reales, con sustos escalofriantes y atmósfera opresiva."
+        "Los Warren ayudan a una familia aterrorizada por entidades demoníacas en su granja embrujada."
     },
     7: {
-      title: "Saw X (2023)",
-      emojis: "🧩🪚🩸⛓️",
-      actors: ["Tobin Bell", "Shawnee Smith", "Synnøve Macody Lund"],
-      poster: "/posters/saw-x-2023.jpg",
-      frame: "/frames/sawx-trap.jpg",
-      finalTitle: "Saw X (2023)",
-      finalImage: "/final/sawx.jpg",
+      title: "Nosferatu (2024/2025)",
+      emojis: "🧛🌙🏰🦇",
+      actors: ["Bill Skarsgård", "Nicholas Hoult", "Lily-Rose Depp"],
+      poster: "/posters/nosferatu-2025.jpg",
+      frame: "/frames/nosferatu-castle.jpg",
+      finalTitle: "Nosferatu (2024/2025)",
+      finalImage: "/final/nosferatu.jpg",
       synopsis:
-        "Jigsaw regresa con trampas ingeniosas y moralistas para castigar a estafadores médicos en México, explorando su origen y sed de justicia. Un capítulo sangriento que revitaliza la saga con giros sádicos y dilemas éticos."
+        "Robert Eggers reinventa el clásico vampírico con atmósfera gótica y terror renovado."
     },
     8: {
       title: "The Sixth Sense (1999)",
@@ -107,7 +107,7 @@ export const CONFIG: {
       finalTitle: "The Sixth Sense (1999)",
       finalImage: "/final/sixth-sense.jpg",
       synopsis:
-        "Un niño con la capacidad de ver y comunicarse con los muertos busca ayuda de un psicólogo traumatizado, revelando secretos del más allá. Un drama sobrenatural con un giro inolvidable y exploración emocional del duelo."
+        "Un niño con la capacidad de ver muertos busca ayuda en un psicólogo traumatizado."
     },
     9: {
       title: "Train to Busan (2016)",
@@ -118,18 +118,18 @@ export const CONFIG: {
       finalTitle: "Train to Busan (2016)",
       finalImage: "/final/busan.jpg",
       synopsis:
-        "Un padre y su hija quedan atrapados en un tren durante un apocalipsis zombi en Corea, luchando por sobrevivir con aliados improbables. Una mezcla emotiva de acción, sacrificio y crítica social en un viaje infernal."
+        "Un padre y su hija quedan atrapados en un tren durante un apocalipsis zombi en Corea."
     },
     10: {
-      title: "Heretic (2024)",
-      emojis: "⛪🗝️🕯️🧠",
-      actors: ["Sophie Thatcher", "Chloe East", "Hugh Grant"],
-      poster: "/posters/heretic-2024.jpg",
-      frame: "/frames/heretic-hallway.jpg",
-      finalTitle: "Heretic (2024)",
-      finalImage: "/final/heretic.jpg",
+      title: "A Quiet Place: Day One (2024)",
+      emojis: "🤫👽🗽🚀",
+      actors: ["Lupita Nyong'o", "Joseph Quinn", "Djimon Hounsou"],
+      poster: "/posters/a-quiet-place-day-one-2024.jpg",
+      frame: "/frames/dayone-nyc.jpg",
+      finalTitle: "A Quiet Place: Day One (2024)",
+      finalImage: "/final/dayone.jpg",
       synopsis:
-        "Dos jóvenes misioneras son invitadas a la casa de un hombre carismático que cuestiona su fe con juegos mentales y trampas mortales. Un thriller psicológico que deconstruye la religión con tensión claustrofóbica y diálogos afilados."
+        "En el primer día de la invasión alienígena, una mujer en Nueva York lucha por sobrevivir en silencio."
     },
     11: {
       title: "Five Nights at Freddy's (2023)",
@@ -140,10 +140,10 @@ export const CONFIG: {
       finalTitle: "Five Nights at Freddy's (2023)",
       finalImage: "/final/fnaf.jpg",
       synopsis:
-        "Un vigilante nocturno en una pizzería abandonada descubre que los animatrónicos poseídos ocultan un pasado siniestro y persiguen a intrusos. Adaptación fiel del videojuego con jumpscares y lore misterioso."
+        "Un vigilante nocturno en una pizzería descubre que los animatrónicos están poseídos."
     },
     12: {
-      title: "La matanza de Texas (1974)",
+      title: "The Texas Chain Saw Massacre (1974)",
       emojis: "🔨⛓️🩸🌵",
       actors: ["Marilyn Burns", "Gunnar Hansen", "Edwin Neal"],
       poster: "/posters/texas-chainsaw-1974.jpg",
@@ -151,29 +151,29 @@ export const CONFIG: {
       finalTitle: "The Texas Chain Saw Massacre (1974)",
       finalImage: "/final/texas-1974.jpg",
       synopsis:
-        "Un grupo de amigos se topa con una familia de caníbales en el rural Texas, liderada por el enmascarado Leatherface. Un hito del horror crudo y realista que define el slasher con brutalidad visceral y atmósfera asfixiante."
+        "Un grupo de amigos se topa con una familia de caníbales en Texas, liderada por Leatherface."
     },
     13: {
-      title: "La cura del bienestar (2016)",
-      emojis: "💊🧪🏞️🦌",
-      actors: ["Dane DeHaan", "Mia Goth", "Jason Isaacs"],
-      poster: "/posters/cure-wellness-2016.jpg",
-      frame: "/frames/wellness-tank.jpg",
-      finalTitle: "A Cure for Wellness (2016)",
-      finalImage: "/final/wellness.jpg",
+      title: "The Haunted Mansion (2003)",
+      emojis: "🏚️👻💍😂",
+      actors: ["Eddie Murphy", "Marsha Thomason", "Terence Stamp"],
+      poster: "/posters/haunted-mansion-2003.jpg",
+      frame: "/frames/hauntedmansion2003.jpg",
+      finalTitle: "The Haunted Mansion (2003)",
+      finalImage: "/final/hauntedmansion2003.jpg",
       synopsis:
-        "Un ambicioso ejecutivo es enviado a un spa remoto en los Alpes para rescatar a su jefe, pero descubre tratamientos macabros y un culto a la longevidad. Un misterio gótico con visuales hipnóticos y horror corporal perturbador."
+        "Un agente inmobiliario y su familia visitan una mansión embrujada llena de fantasmas y secretos."
     },
     14: {
-      title: "Hansel y Gretel: Cazadores de Brujas (2013)",
-      emojis: "🧙🏹🍬🔥",
-      actors: ["Jeremy Renner", "Gemma Arterton", "Famke Janssen"],
-      poster: "/posters/hansel-gretel-2013.jpg",
-      frame: "/frames/hanselgretel-crossbow.jpg",
-      finalTitle: "Hansel & Gretel: Witch Hunters (2013)",
-      finalImage: "/final/hanselgretel.jpg",
+      title: "The Addams Family (1991)",
+      emojis: "🏠🕷️⚰️💀",
+      actors: ["Anjelica Huston", "Raul Julia", "Christina Ricci"],
+      poster: "/posters/addams-family-1991.jpg",
+      frame: "/frames/addams-family.jpg",
+      finalTitle: "The Addams Family (1991)",
+      finalImage: "/final/addams.jpg",
       synopsis:
-        "Los hermanos Hansel y Gretel, traumatizados por su infancia, se convierten en cazadores de brujas armados con ingenio y armas modernas. Una fantasía oscura llena de acción explosiva, humor negro y mitología retorcida."
+        "Los excéntricos Addams enfrentan a un impostor que afirma ser el tío Fester."
     },
     15: {
       title: "Zombieland (2009)",
@@ -184,7 +184,7 @@ export const CONFIG: {
       finalTitle: "Zombieland (2009)",
       finalImage: "/final/zombieland.jpg",
       synopsis:
-        "En un mundo postapocalíptico infestado de zombis, un grupo disfuncional de supervivientes viaja en busca de refugio, aplicando reglas hilarantes y enfrentando peligros absurdos. Comedia de horror con química irresistible y sátira zombie."
+        "En un mundo postapocalíptico infestado de zombis, un grupo disfuncional busca sobrevivir con reglas absurdas."
     },
     16: {
       title: "Evil Dead Rise (2023)",
@@ -195,18 +195,18 @@ export const CONFIG: {
       finalTitle: "Evil Dead Rise (2023)",
       finalImage: "/final/evildead-rise.jpg",
       synopsis:
-        "Una familia en un edificio de apartamentos libera demonios del Necronomicón, transformando a una madre en una entidad poseída y sangrienta. Un reinicio urbano con gore innovador y terror familiar intenso."
+        "Una familia libera demonios del Necronomicón en un edificio de apartamentos."
     },
     17: {
-      title: "Child's Play (2019)",
-      emojis: "🧸🤖🔪📱",
-      actors: ["Aubrey Plaza", "Gabriel Bateman", "Brian Tyree Henry"],
-      poster: "/posters/childs-play-2019.jpg",
-      frame: "/frames/chucky-reboot.jpg",
-      finalTitle: "Child's Play (2019)",
-      finalImage: "/final/childsplay-2019.jpg",
+      title: "Beetlejuice (1988)",
+      emojis: "👻⚰️🕸️🎩",
+      actors: ["Michael Keaton", "Winona Ryder", "Geena Davis"],
+      poster: "/posters/beetlejuice-1988.jpg",
+      frame: "/frames/beetlejuice.jpg",
+      finalTitle: "Beetlejuice (1988)",
+      finalImage: "/final/beetlejuice.jpg",
       synopsis:
-        "Un muñeco de IA defectuoso desarrolla una obsesión asesina por su joven dueño, hackeando dispositivos para sembrar el caos. Un remake moderno que fusiona tecnología, slasher y crítica a la inteligencia artificial."
+        "Una pareja de fantasmas contrata a Beetlejuice para asustar a los nuevos dueños de su casa."
     },
     18: {
       title: "28 Days Later (2002)",
@@ -217,7 +217,7 @@ export const CONFIG: {
       finalTitle: "28 Days Later (2002)",
       finalImage: "/final/28days.jpg",
       synopsis:
-        "Un hombre despierta de un coma en una Londres abandonada por un virus que convierte a las personas en infectados rabiosos. Un hito del horror posapocalíptico con realismo crudo, velocidad y exploración de la humanidad en crisis."
+        "Un hombre despierta en una Londres vacía tras un brote viral que convierte a las personas en infectados rabiosos."
     },
     19: {
       title: "Insidious (2010)",
@@ -228,7 +228,7 @@ export const CONFIG: {
       finalTitle: "Insidious (2010)",
       finalImage: "/final/insidious.jpg",
       synopsis:
-        "Una familia descubre que su hijo en coma está atrapado en un reino astral, atrayendo entidades malévolas al mundo real. Terror sobrenatural con proyecciones astrales, jumpscares efectivos y una mitología escalofriante."
+        "Un niño en coma queda atrapado en un reino astral, atrayendo entidades malévolas."
     },
     20: {
       title: "Scream VI (2023)",
@@ -239,10 +239,10 @@ export const CONFIG: {
       finalTitle: "Scream VI (2023)",
       finalImage: "/final/screamvi.jpg",
       synopsis:
-        "Las supervivientes de Woodsboro se mudan a Nueva York, pero Ghostface las persigue con reglas nuevas y asesinatos más audaces. Un slasher meta que homenajea la saga mientras innova con escenarios urbanos y giros familiares."
+        "Las supervivientes de Woodsboro se mudan a Nueva York, pero Ghostface las persigue con nuevas reglas."
     },
     21: {
-      title: "El proyecto de la bruja de Blair (1999)",
+      title: "The Blair Witch Project (1999)",
       emojis: "📹🌲🪵🧍‍♀️",
       actors: ["Heather Donahue", "Joshua Leonard", "Michael C. Williams"],
       poster: "/posters/blair-witch-1999.jpg",
@@ -250,7 +250,7 @@ export const CONFIG: {
       finalTitle: "The Blair Witch Project (1999)",
       finalImage: "/final/blair-1999.jpg",
       synopsis:
-        "Tres cineastas documentan la leyenda de la Bruja de Blair en un bosque maldito, pero pronto se pierden en un terror psicológico y sobrenatural. El pionero del found footage que revolucionó el horror con realismo y sugestión."
+        "Tres cineastas documentan la leyenda de la Bruja de Blair y se pierden en el bosque."
     },
     22: {
       title: "Van Helsing (2004)",
@@ -261,7 +261,7 @@ export const CONFIG: {
       finalTitle: "Van Helsing (2004)",
       finalImage: "/final/vanhelsing.jpg",
       synopsis:
-        "El legendario cazador Van Helsing une fuerzas contra Drácula, Frankenstein y hombres lobo en una Transilvania gótica. Una aventura épica con efectos visuales espectaculares, acción trepidante y monstruos clásicos reinventados."
+        "Van Helsing lucha contra Drácula, Frankenstein y hombres lobo en Transilvania."
     },
     23: {
       title: "The Exorcist (1973)",
@@ -272,7 +272,7 @@ export const CONFIG: {
       finalTitle: "The Exorcist (1973)",
       finalImage: "/final/exorcist.jpg",
       synopsis:
-        "Una niña poseída por un demonio obliga a su madre a buscar ayuda en un exorcismo católico, desatando horrores físicos y espirituales. Un clásico del terror que explora la fe, el mal y lo sobrenatural con impacto duradero."
+        "Una niña poseída por un demonio obliga a su madre a buscar ayuda en un exorcismo católico."
     },
     24: {
       title: "It (2017)",
@@ -283,10 +283,10 @@ export const CONFIG: {
       finalTitle: "It (2017)",
       finalImage: "/final/it-2017.jpg",
       synopsis:
-        "Un grupo de niños marginados en Derry une fuerzas contra Pennywise, un payaso shapeshifter que se alimenta de miedos infantiles cada 27 años. Adaptación fiel de Stephen King con amistad, terror y coming-of-age emotivo."
+        "Un grupo de niños lucha contra Pennywise, un payaso que se alimenta de sus miedos."
     },
     25: {
-      title: "El resplandor (1980)",
+      title: "The Shining (1980)",
       emojis: "🏨🪓👭❄️",
       actors: ["Jack Nicholson", "Shelley Duvall", "Danny Lloyd"],
       poster: "/posters/shining-1980.jpg",
@@ -294,10 +294,10 @@ export const CONFIG: {
       finalTitle: "The Shining (1980)",
       finalImage: "/final/shining-1980.jpg",
       synopsis:
-        "Un aspirante a escritor acepta cuidar un hotel aislado en invierno, pero fuerzas sobrenaturales lo llevan a la locura y la violencia familiar. Obra maestra de Kubrick que disecciona el aislamiento y el mal con imágenes icónicas."
+        "Un escritor se convierte en un psicópata durante un invierno aislado en el Hotel Overlook."
     },
     26: {
-      title: "El silencio de los corderos (1991)",
+      title: "The Silence of the Lambs (1991)",
       emojis: "🦋👁️🍷🕵️‍♀️",
       actors: ["Jodie Foster", "Anthony Hopkins", "Scott Glenn"],
       poster: "/posters/silence-lambs-1991.jpg",
@@ -305,32 +305,32 @@ export const CONFIG: {
       finalTitle: "The Silence of the Lambs (1991)",
       finalImage: "/final/silence.jpg",
       synopsis:
-        "Una joven agente del FBI consulta al caníbal Hannibal Lecter para cazar a un asesino que despelleja a sus víctimas. Un thriller psicológico magistral con actuaciones legendarias y exploración de la mente criminal."
+        "Una agente del FBI consulta a Hannibal Lecter para atrapar a un asesino en serie."
     },
     27: {
-      title: "Viernes 13 (2009)",
-      emojis: "🏕️🔪🛶🏒",
-      actors: ["Jared Padalecki", "Danielle Panabaker", "Derek Mears"],
-      poster: "/posters/friday-13th-2009.jpg",
-      frame: "/frames/friday-machete.jpg",
-      finalTitle: "Friday the 13th (2009)",
-      finalImage: "/final/friday2009.jpg",
+      title: "Halloween (1978)",
+      emojis: "🎃🔪🏠👻",
+      actors: ["Jamie Lee Curtis", "Donald Pleasence", "Nick Castle"],
+      poster: "/posters/halloween-1978.jpg",
+      frame: "/frames/halloween-mask.jpg",
+      finalTitle: "Halloween (1978)",
+      finalImage: "/final/halloween.jpg",
       synopsis:
-        "Jóvenes en busca de un amigo desaparecido despiertan la ira de Jason Voorhees en Crystal Lake, enfrentando su machete imparable. Un reboot slasher que actualiza el mito con gore moderno y tensión constante."
+        "Michael Myers escapa del manicomio y regresa a su ciudad para sembrar el terror en la noche de Halloween."
     },
     28: {
-      title: "Speak No Evil (2022)",
-      emojis: "🤐🏡🍽️😱",
-      actors: ["Morten Burian", "Sidsel Siem Koch", "Fedja van Huêt"],
-      poster: "/posters/speak-no-evil-2022.jpg",
-      frame: "/frames/speakevil-dinner.jpg",
-      finalTitle: "Speak No Evil (2022)",
-      finalImage: "/final/speakevil.jpg",
+      title: "Trick 'r Treat (2007)",
+      emojis: "🍬🎃📜🩸",
+      actors: ["Anna Paquin", "Brian Cox", "Dylan Baker"],
+      poster: "/posters/trick-r-treat-2007.jpg",
+      frame: "/frames/trickrtreat-sam.jpg",
+      finalTitle: "Trick 'r Treat (2007)",
+      finalImage: "/final/trickrtreat.jpg",
       synopsis:
-        "Una familia danesa acepta una invitación de vacaciones de una pareja holandesa aparentemente amigable, pero las normas sociales ocultan horrores crecientes. Un horror psicológico que critica la cortesía con escalofriante crudeza."
+        "Historias entrelazadas en Halloween revelan las reglas no escritas de la noche más terrorífica."
     },
     29: {
-      title: "Los Otros (2001)",
+      title: "The Others (2001)",
       emojis: "🏠🌫️👻🕯️",
       actors: ["Nicole Kidman", "Fionnula Flanagan", "Christopher Eccleston"],
       poster: "/posters/los-otros-2001.jpg",
@@ -338,21 +338,21 @@ export const CONFIG: {
       finalTitle: "The Others (2001)",
       finalImage: "/final/the-others.jpg",
       synopsis:
-        "En una mansión victoriana, una madre protege a sus hijos fotosensibles de presencias inexplicables, cuestionando la realidad y lo sobrenatural. Un thriller gótico con giros ingeniosos y atmósfera de suspense clásico."
+        "En una mansión victoriana, una madre protege a sus hijos de presencias inexplicables."
     },
     30: {
-      title: "A Quiet Place: Day One (2024)",
-      emojis: "🤫👽🗽🚀",
-      actors: ["Lupita Nyong'o", "Joseph Quinn", "Djimon Hounsou"],
-      poster: "/posters/a-quiet-place-day-one-2024.jpg",
-      frame: "/frames/dayone-nyc.jpg",
-      finalTitle: "A Quiet Place: Day One (2024)",
-      finalImage: "/final/dayone.jpg",
+      title: "Hocus Pocus (1993)",
+      emojis: "🧙‍♀️🕯️🐈🎃",
+      actors: ["Bette Midler", "Sarah Jessica Parker", "Kathy Najimy"],
+      poster: "/posters/hocus-pocus-1993.jpg",
+      frame: "/frames/hocuspocus.jpg",
+      finalTitle: "Hocus Pocus (1993)",
+      finalImage: "/final/hocuspocus.jpg",
       synopsis:
-        "En el primer día de la invasión alienígena, una mujer en Nueva York debe navegar el caos urbano en absoluto silencio para sobrevivir a criaturas ciegas pero auditivamente letales. Precuela tensa con survival horror urbano."
+        "Tres brujas del siglo XVII regresan a Salem y deben ser detenidas por un grupo de jóvenes en Halloween."
     },
     31: {
-      title: "Pesadilla antes de Navidad (1993)",
+      title: "The Nightmare Before Christmas (1993)",
       emojis: "🎃🎄👻🎤",
       actors: ["Danny Elfman (voz)", "Catherine O'Hara (voz)", "Chris Sarandon (voz)"],
       poster: "/posters/nightmare-before-christmas-1993.jpg",
@@ -360,7 +360,7 @@ export const CONFIG: {
       finalTitle: "The Nightmare Before Christmas (1993)",
       finalImage: "/final/nbc.jpg",
       synopsis:
-        "Jack Skellington, aburrido de Halloween, secuestra la Navidad para reinventarla con su estilo macabro, aprendiendo sobre la alegría verdadera. Un musical animado en stop-motion de Tim Burton, lleno de encanto festivo y oscuro."
+        "Jack Skellington secuestra la Navidad para reinventarla con su estilo macabro, aprendiendo sobre la alegría verdadera."
     }
   }
 };
