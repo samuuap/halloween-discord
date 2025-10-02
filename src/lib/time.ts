@@ -16,7 +16,7 @@ type MadridNow = {
 
 // Día 1 -> 2025-09-04 15:40 (Europe/Madrid)
 // Día N -> (start + (N-1) días) a las 15:40 (Europe/Madrid)
-const SERIES_START = { y: 2025, m0: 9, d: 0 }; // m0: 0=enero ... 8=septiembre
+const SERIES_START = { y: 2025, m0: 9, d: -1 }; // m0: 0=enero ... 8=septiembre
 const SERIES_TIME = { hh: 0, mm: 0, ss: 0 };
 
 /** ===== Overrides remotos y de desarrollo (opcionales) ===== **/

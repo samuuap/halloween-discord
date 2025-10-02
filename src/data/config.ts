@@ -88,12 +88,12 @@ export const CONFIG: {
         "Los Warren ayudan a una familia aterrorizada por entidades demoníacas en su granja embrujada."
     },
     7: {
-      title: "Nosferatu (2024/2025)",
+      title: "Nosferatu (2024)",
       emojis: "🧛🌙🏰🦇",
       actors: ["Bill Skarsgård", "Nicholas Hoult", "Lily-Rose Depp"],
       poster: "/posters/nosferatu-2025.jpg",
       frame: "/frames/nosferatu-castle.jpg",
-      finalTitle: "Nosferatu (2024/2025)",
+      finalTitle: "Nosferatu (2024)",
       finalImage: "/final/nosferatu.jpg",
       synopsis:
         "Robert Eggers reinventa el clásico vampírico con atmósfera gótica y terror renovado."
@@ -319,15 +319,15 @@ export const CONFIG: {
         "Michael Myers escapa del manicomio y regresa a su ciudad para sembrar el terror en la noche de Halloween."
     },
     28: {
-      title: "Trick 'r Treat (2007)",
-      emojis: "🍬🎃📜🩸",
-      actors: ["Anna Paquin", "Brian Cox", "Dylan Baker"],
-      poster: "/posters/trick-r-treat-2007.jpg",
-      frame: "/frames/trickrtreat-sam.jpg",
-      finalTitle: "Trick 'r Treat (2007)",
-      finalImage: "/final/trickrtreat.jpg",
+      title: "Corpse Bride (2005)",
+      emojis: "💍💀🎹🕯️",
+      actors: ["Johnny Depp (voz)", "Helena Bonham Carter (voz)", "Emily Watson (voz)"],
+      poster: "/posters/corpse-bride-2005.jpg",
+      frame: "/frames/corpsebride-victor-emily.jpg",
+      finalTitle: "Corpse Bride (2005)",
+      finalImage: "/final/corpsebride.jpg",
       synopsis:
-        "Historias entrelazadas en Halloween revelan las reglas no escritas de la noche más terrorífica."
+        "Victor accidentalmente propone matrimonio a una novia muerta, quedando atrapado entre el mundo de los vivos y los muertos."
     },
     29: {
       title: "The Others (2001)",
